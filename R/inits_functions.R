@@ -6,13 +6,16 @@
 #'
 #' @param fct_args A \code{\link[base]{character}} string containing
 #' the expected argument names to be used.
-#' @param priors an object of class "brmsprior" from package \pkg{brms}.
-#' @param chains Number of chains to be passed to brms model.
+#' @param priors an object of class \code{\link[brms]{brmsprior}} from package
+#' \pkg{brms}.
+#' @param chains Number of chains to be passed to \pkg{brms} model.
 #'
 #' @importFrom stats rgamma rnorm rbeta runif
 #'
 #' @seealso \code{\link{bnec}}
 #' @return A \code{\link[base]{list}} containing the initialisation values.
+#'
+#' @noRd
 make_inits <- function(model, fct_args, priors, chains) {
   fcts <- c(gamma = rgamma,
             normal = rnorm,
@@ -91,6 +94,8 @@ make_inits <- function(model, fct_args, priors, chains) {
 #'
 #' @seealso \code{\link{make_inits}}
 #' @return A \code{\link[base]{list}} containing the initialisation values.
+#'
+#' @noRd
 make_good_inits <- function(model, x, y, n_trials = 1e5, ...) {
   limits <- range(y, na.rm = TRUE)
   pred_fct <- get(paste0("pred_", model))
@@ -100,7 +105,7 @@ make_good_inits <- function(model, x, y, n_trials = 1e5, ...) {
   init_ranges <- lapply(inits, get_init_ranges, x, pred_fct, fct_args)
   are_good <- all(sapply(init_ranges, check_limits, limits))
   n_t <- 1
-  while (!are_good & n_t <= n_trials) {
+  while (!are_good && n_t <= n_trials) {
     inits <- make_inits(model, fct_args, ...)
     init_ranges <- lapply(inits, get_init_ranges, x, pred_fct, fct_args)
     are_good <- all(sapply(init_ranges, check_limits, limits))
@@ -110,7 +115,7 @@ make_good_inits <- function(model, x, y, n_trials = 1e5, ...) {
     message("bayesnec failed to find initial values within the",
             " range of the response. Using Stan's default",
             " initialisation process.")
-    "random"
+    list(random = "random")
   } else {
     inits
   }

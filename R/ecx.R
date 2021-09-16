@@ -1,5 +1,3 @@
-#' ecx.default
-#'
 #' Extracts the predicted ECx value as desired from an object of class
 #' \code{\link{bayesnecfit}} or \code{\link{bayesnecfit}}.
 #'
@@ -32,7 +30,7 @@
 #' Note that for the current version, ECx for an "nechorme" (NEC Hormesis)
 #' model is estimated at a percent decline from the control.
 #' For \code{hormesis_def}, if "max", then ECx values are calculated as a
-#' decline from the maximum estimates (i.e. the peak at nec);
+#' decline from the maximum estimates (i.e. the peak at NEC);
 #' if "control", then ECx values are calculated relative to the control, which
 #' is assumed to be the lowest observed concentration.
 #'
@@ -40,8 +38,6 @@
 #'
 #' @return A vector containing the estimated ECx value, including upper and
 #' lower 95% credible interval bounds.
-#'
-#' @importFrom stats quantile predict
 #'
 #' @examples
 #' \donttest{
@@ -53,17 +49,36 @@
 #' }
 #'
 #' @export
+ecx <- function(object, ecx_val = 10, precision = 1000,
+                posterior = FALSE, type = "absolute",
+                hormesis_def = "control", x_range = NA,
+                xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
+  UseMethod("ecx")
+}
+
+#' @inheritParams ecx
+#'
+#' @param object An object of class \code{\link{bayesnecfit}} returned by
+#' \code{\link{bnec}}.
+#'
+#' @inherit ecx details return seealso examples
+#'
+#' @importFrom stats quantile predict
+#'
+#' @noRd
+#'
+#' @export
 ecx.default <- function(object, ecx_val = 10, precision = 1000,
                         posterior = FALSE, type = "absolute",
                         hormesis_def = "control", x_range = NA,
                         xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
-  if (length(prob_vals) < 3 | prob_vals[1] < prob_vals[1] |
-        prob_vals[1] > prob_vals[3] | prob_vals[2] > prob_vals[3]) {
+  if (length(prob_vals) < 3 || prob_vals[1] < prob_vals[1] ||
+        prob_vals[1] > prob_vals[3] || prob_vals[2] > prob_vals[3]) {
     stop("prob_vals must include central, lower and upper quantiles,",
          " in that order")
     }
   if (type != "direct") {
-    if (ecx_val < 1 | ecx_val > 99) {
+    if (ecx_val < 1 || ecx_val > 99) {
       stop("Supplied ecx_val is not in the required range. ",
            "Please supply a percentage value between 1 and 99.")
     }
@@ -78,7 +93,7 @@ ecx.default <- function(object, ecx_val = 10, precision = 1000,
   } else {
     m4param <- 0
   }
-  if (object$fit$family$family == "gaussian" & type == "absolute" &
+  if (object$fit$family$family == "gaussian" && type == "absolute" &
         m4param == 0) {
     stop("Absolute ECx values are not valid for a gaussian ",
          "response variable unless a model with a bot parameter is fit")
@@ -93,6 +108,13 @@ ecx.default <- function(object, ecx_val = 10, precision = 1000,
   }
   ecx_fct <- get(paste0("ecx_x_", type))
   ecx_out <- apply(p_samples, 1, ecx_fct, ecx_val, x_vec)
+  formula <- object$bayesnecformula
+  x_str <- grep("crf(", labels(terms(formula)), fixed = TRUE, value = TRUE)
+  x_call <- str2lang(eval(parse(text = x_str)))
+  if (inherits(x_call, "call")) {
+    x_call[[2]] <- str2lang("ecx_out")
+    ecx_out <- eval(x_call)
+  }
   if (inherits(xform, "function")) {
     ecx_out <- xform(ecx_out)
   }
@@ -123,51 +145,36 @@ ecx.default <- function(object, ecx_val = 10, precision = 1000,
   }
 }
 
-#' ecx
+#' @inheritParams ecx
 #'
-#' Extracts the predicted ECx value as desired from an object of class
-#' \code{\link{bayesnecfit}} or \code{\link{bayesnecfit}}.
+#' @inherit ecx details return seealso examples
 #'
-#' @inheritParams ecx.default
+#' @param object An object of class \code{\link{bayesnecfit}} returned by
+#' \code{\link{bnec}}.
 #'
-#' @inherit ecx.default return details seealso examples
+#' @noRd
 #'
 #' @export
-ecx <- function(object, ecx_val = 10, precision = 1000,
-                posterior = FALSE, type = "absolute",
-                hormesis_def = "control", x_range = NA,
-                xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
-  UseMethod("ecx")
+ecx.bayesnecfit <- function(object, ecx_val = 10, precision = 1000,
+                            posterior = FALSE, type = "absolute",
+                            hormesis_def = "control", x_range = NA,
+                            xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
+  ecx.default(object = object, ecx_val = ecx_val, precision = precision,
+              posterior = posterior, type = type, hormesis_def = hormesis_def,
+              x_range = x_range, xform = xform, prob_vals = prob_vals)
 }
 
-#' ecx.bayesnecfit
-#'
-#' Extracts the predicted ECx value as desired from an object of class
-#' \code{\link{bayesnecfit}}.
-#'
-#' @param object An object of class \code{\link{bayesnecfit}}
-#' returned by \code{\link{bnec}}.
-#' @param ... Additional arguments to \code{\link{ecx}}
-#'
-#' @inherit ecx return details seealso examples
-#' @export
-ecx.bayesnecfit <- function(object, ...) {
-  ecx.default(object, ...)
-}
-
-#' ecx.bayesmanecfit
-#'
-#' Extracts the predicted ECx value as desired from an object of class
-#' \code{\link{bayesmanecfit}}.
-#'
 #' @inheritParams ecx
 #'
 #' @param object An object of class \code{\link{bayesmanecfit}} returned by
 #' \code{\link{bnec}}.
 #'
-#' @inherit ecx return details seealso examples
+#' @inherit ecx details return seealso examples
 #'
 #' @importFrom stats quantile
+#'
+#' @noRd
+#'
 #' @export
 ecx.bayesmanecfit <- function(object, ecx_val = 10, precision = 1000,
                               posterior = FALSE, type = "absolute",
@@ -178,11 +185,9 @@ ecx.bayesmanecfit <- function(object, ecx_val = 10, precision = 1000,
                          x_range, xform, prob_vals, sample_size) {
     mod <- names(object$mod_fits)[x]
     target <- suppressMessages(pull_out(object, model = mod))
-    out <- ecx.default(target, ecx_val = ecx_val,
-                       precision = precision, posterior = posterior,
-                       type = type, hormesis_def = hormesis_def,
-                       x_range = x_range, xform = xform,
-                       prob_vals = prob_vals)
+    out <- ecx(target, ecx_val = ecx_val, precision = precision,
+               posterior = posterior, type = type, hormesis_def = hormesis_def,
+               x_range = x_range, xform = xform, prob_vals = prob_vals)
     n_s <- as.integer(round(sample_size * object$mod_stats[x, "wi"]))
     sample(out, n_s)
   }
@@ -205,6 +210,7 @@ ecx.bayesmanecfit <- function(object, ecx_val = 10, precision = 1000,
   }
 }
 
+#' @noRd
 ecx_x_relative <- function(y, ecx_val, x_vec) {
   if (length(which(!is.na(y))) == 0) {
     outval <- max(x_vec)
@@ -216,6 +222,7 @@ ecx_x_relative <- function(y, ecx_val, x_vec) {
   outval
 }
 
+#' @noRd
 ecx_x_absolute <- function(y, ecx_val, x_vec) {
   if (length(which(!is.na(y))) == 0) {
     outval <- max(x_vec)
@@ -224,9 +231,10 @@ ecx_x_absolute <- function(y, ecx_val, x_vec) {
     ecx_y <- max(range_y) - diff(range_y) * (ecx_val / 100)
     outval <- x_vec[min_abs(y - ecx_y)]
   }
- outval
+  outval
 }
 
+#' @noRd
 ecx_x_direct <- function(y, ecx_val, x_vec) {
   if (length(which(!is.na(y))) == 0) {
     outval <- max(x_vec)

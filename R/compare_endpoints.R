@@ -1,16 +1,16 @@
 #' compare_endpoints
 #'
 #' Extracts posterior predicted values from a list of class
-#' \code{\link{bayesnecfit}} or \code{\link{bayesnecfit}} model fits and
+#' \code{\link{bayesnecfit}} or \code{\link{bayesmanecfit}} model fits and
 #' compares these via bootstrap re sampling.
 #'
 #' @inheritParams compare_posterior
 #'
 #' @seealso \code{\link{bnec}}
 #'
-#' @return A named list containing bootstrapped differences in posterior
-#' predictions of the \code{\link{bayesnecfit}} or \code{\link{bayesnecfit}}
-#' model fits contained in x. See Details.
+#' @return A named \code{\link[base]{list}} containing bootstrapped differences
+#' in posterior predictions of the \code{\link{bayesnecfit}} or
+#' \code{\link{bayesmanecfit}} model fits contained in \code{x}. See Details.
 #'
 #' @importFrom stats quantile predict
 #' @importFrom dplyr %>% mutate bind_rows arrange
@@ -20,11 +20,13 @@
 #' @importFrom rlang .data
 #'
 #' @examples
+#' \dontrun{
 #' library(bayesnec)
 #' data(manec_example)
-#' ecx4param <- pull_out(manec_example, model = "ecx4param")
 #' nec4param <- pull_out(manec_example, model = "nec4param")
+#' ecx4param <- pull_out(manec_example, model = "ecx4param")
 #' compare_endpoints(list("nec" = ecx4param, "ecx" = nec4param), ecx_val = 50)
+#' }
 #'
 #' @export
 compare_endpoints <- function(x, comparison = "nec", ecx_val = 10,

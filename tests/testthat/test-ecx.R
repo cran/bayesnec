@@ -3,28 +3,31 @@ library(dplyr)
 library(brms)
 
 data(manec_example)
-nec4param <- pull_out(manec_example, model = "nec4param")
-ecx4param <- pull_out(manec_example, model = "ecx4param")
 
 test_that("prob_vals warnings behave as expected", {
   ecx(manec_example, prob_vals = c(0.6, 0.1, 0.9),
       type = "relative") %>%
-    expect_length(3)
+    expect_length(3) %>%
+    suppressWarnings
   ecx(manec_example, prob_vals = 0.9, type = "relative") %>%
-    expect_error
+    expect_error %>%
+    suppressWarnings
   ecx(manec_example, prob_vals = c(0.6, 0.9, 0.1),
       type = "relative") %>%
-    expect_error
+    expect_error %>%
+    suppressWarnings
   ecx(nec4param, prob_vals = c(0.6, 0.1, 0.9),
       type = "relative") %>%
-    expect_length(3)
+    expect_length(3) %>%
+    suppressWarnings
   expect_error(ecx(nec4param, prob_vals = 0.9, type = "relative"))
   expect_error(ecx(nec4param, prob_vals = c(0.6, 0.9, 0.1),
                    type = "relative"))
 })
 
 test_that("ecx_val warnings behave as expected", {
-  expect_error(ecx(manec_example, ecx_val = 0.9, type = "relative"))
+  expect_error(ecx(manec_example, ecx_val = 0.9, type = "relative")) %>%
+    suppressWarnings
   expect_error(ecx(nec4param, ecx_val = 0.9, type = "relative"))
 })
 
@@ -74,7 +77,7 @@ test_that("xform passes correctly", {
 
 test_that("posterior passes correctly", {
   ecx3 <- ecx(ecx4param, posterior = TRUE)
-  expect_equal(length(ecx3), 10)
+  expect_equal(length(ecx3), 100)
 })
 
 test_that("prob_vals passes correctly", {

@@ -2,7 +2,8 @@
 % Please edit documentation in R/ecx.R
 \name{ecx}
 \alias{ecx}
-\title{ecx}
+\title{Extracts the predicted ECx value as desired from an object of class
+\code{\link{bayesnecfit}} or \code{\link{bayesnecfit}}.}
 \usage{
 ecx(
   object,
@@ -63,7 +64,7 @@ provides a direct estimate of the x value for a given y.
 Note that for the current version, ECx for an "nechorme" (NEC Hormesis)
 model is estimated at a percent decline from the control.
 For \code{hormesis_def}, if "max", then ECx values are calculated as a
-decline from the maximum estimates (i.e. the peak at nec);
+decline from the maximum estimates (i.e. the peak at NEC);
 if "control", then ECx values are calculated relative to the control, which
 is assumed to be the lowest observed concentration.
 }

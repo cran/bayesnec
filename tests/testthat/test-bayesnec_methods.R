@@ -1,9 +1,6 @@
 library(bayesnec)
 library(brms)
 
-data(manec_example)
-nec4param <- pull_out(manec_example, model = "nec4param")
-
 test_that("predict is silent", {
   expect_silent(predict(nec4param))
 })
@@ -22,7 +19,14 @@ test_that("plot returns null, is invisible, and is silent", {
 })
 
 test_that("summary behaves as expected", {
-  summary_p <- expect_warning(summary(nec4param))
+  summary_p <- summary(nec4param) %>%
+    suppressWarnings
   expect_equal(class(summary_p), "necsummary")
-  expect_equal(names(summary_p), c("brmssummary", "model", "is_ecx", "ecs"))
+  expect_equal(names(summary_p), c("brmssummary", "model", "is_ecx", "ecs",
+                                   "bayesr2"))
+})
+
+test_that("formula/model.frame behaves as expected", {
+  expect_s3_class(formula(nec4param), "brmsformula")
+  expect_s3_class(model.frame(nec4param), "data.frame")
 })

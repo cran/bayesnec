@@ -7,12 +7,12 @@
 show_params(model = "all")
 }
 \arguments{
-\item{model}{A \code{\link[base]{character}} vector indicating the model(s)
+\item{model}{Removed in version 2.0. Use formula instead. Used to be a
+\code{\link[base]{character}} vector indicating the model(s)
 to fit. See Details for more information.}
 }
 \value{
-An object of class
-\code{\link[brms]{brmsformula}}.
+An \code{\link[base]{list}} of \code{\link[brms]{brmsformula}}.
 }
 \description{
 Displays non-linear equation and parameter names

@@ -2,39 +2,56 @@
 % Please edit documentation in R/expand_classes.R
 \name{expand_manec}
 \alias{expand_manec}
-\title{expand_manec}
+\title{Extracts a range of statistics from a list of \code{\link{prebayesnecfit}}
+objects.}
 \usage{
 expand_manec(
   object,
+  formula,
   x_range = NA,
   precision = 1000,
   sig_val = 0.01,
-  loo_controls = list(method = "pseudobma")
+  loo_controls
 )
 }
 \arguments{
-\item{object}{a bayesmanecfit mod_fits output list, as returned by
-\code{\link{bnec}} when more than one model is supplied.}
+\item{object}{A \code{\link[base]{list}} of objects of class
+\code{\link{prebayesnecfit}}.}
 
-\item{x_range}{A range of x values over which to consider extracting ECx.}
+\item{formula}{Either a \code{\link[base]{character}} string defining an
+R formula or an actual \code{\link[stats]{formula}} object. See
+\code{\link{bayesnecformula}} and \code{\link{check_formula}}. It could also
+be a \code{\link[base]{list}} of formulas if multiple objects are passed to
+\code{object}.}
 
-\item{precision}{The length of the x vector used for posterior predictions,
-and over which to extract ECx values. Large values will be slower but more
-precise.}
+\item{x_range}{A range of predictor values over which to consider extracting
+ECx.}
+
+\item{precision}{The length of the predictor vector used for posterior
+predictions, and over which to extract ECx values. Large values will be
+slower but more precise.}
 
 \item{sig_val}{Probability value to use as the lower quantile to test
-significance of the predicted posterior values
-against the lowest observed concentration (assumed to be the control), to
-estimate NEC as an interpolated NOEC value from smooth ECx curves.}
+significance of the predicted posterior values against the lowest observed
+concentration (assumed to be the control), to estimate NEC as an
+interpolated NOEC value from smooth ECx curves.}
 
-\item{loo_controls}{A named \code{\link[base]{list}} containing the desired
-arguments to be passed on to \code{\link[loo]{loo_model_weights}}. It sets
-the default wi_method to "pseudobma". See help documentation
-?loo_model_weights from package loo.}
+\item{loo_controls}{A named \code{\link[base]{list}} of two elements
+("fitting" and/or "weights"), each being a named \code{\link[base]{list}}
+containing the desired arguments to be passed on to \code{\link[brms]{loo}}
+(via "fitting") or to \code{\link[loo]{loo_model_weights}} (via "weights").
+If "fitting" is provided with argument \code{pointwise = TRUE}
+(due to memory issues) and \code{family = "beta_binomial2"}, the
+\code{\link{bnec}} will fail because that is a custom family. If "weights" is
+not provided by the user, \code{\link{bnec}} will set the default
+\code{method} argument in \code{\link[loo]{loo_model_weights}} to
+"pseudobma". See ?\code{\link[loo]{loo_model_weights}} for further info.}
 }
 \value{
-A list of model statistical output derived from the input model list
+A \code{\link[base]{list}} of model statistical output derived from
+the input model list.
 }
 \description{
-Extracts a range of statistics from a list of bayesnecfit model fits.
+Extracts a range of statistics from a list of \code{\link{prebayesnecfit}}
+objects.
 }

@@ -63,7 +63,7 @@ min_abs <- function(x) {
 #' @importFrom brms prior_string
 #' @noRd
 paste_normal_prior <- function(mean, param, sd = 1, ...) {
-    prior_string(paste0("normal(", mean, ", ", sd, ")"), nlpar = param, ...)
+  prior_string(paste0("normal(", mean, ", ", sd, ")"), nlpar = param, ...)
 }
 
 #' @noRd
@@ -73,12 +73,12 @@ extract_dispersion <- function(x) {
 
 #' @noRd
 extract_loo <- function(x) {
-  x$fit$loo
+  x$fit$criteria$loo
 }
 
 #' @noRd
-extract_waic <- function(x) {
-  x$fit$waic$estimates["waic", "Estimate"]
+extract_waic_estimate <- function(x) {
+  x$fit$criteria$waic$estimates["waic", "Estimate"]
 }
 
 #' @noRd
@@ -146,7 +146,7 @@ handle_set <- function(x, add, drop) {
   if (identical(sort(x), sort(tmp))) {
     message("Nothing to amend, please specify a model to ",
             "either add or drop that differs from the original set.")
-    FALSE
+    "wrong_model_output"
   } else {
     tmp
   }
@@ -168,12 +168,13 @@ allot_class <- function(x, new_class) {
 
 #' @noRd
 expand_and_assign_nec <- function(x, ...) {
-  allot_class(expand_nec(x, ...), "bayesnecfit")
+  allot_class(expand_nec(x, ...), c("bayesnecfit", "bnecfit"))
 }
 
 #' are_chains_correct
 #'
-#' Checks if number of chains in brmsfit object is correct
+#' Checks if number of chains in a \code{\link[brms]{brmsfit}} object are
+#' correct.
 #'
 #' @param brms_fit An object of class \code{\link[brms]{brmsfit}}.
 #' @param chains The expected number of correct chains.
@@ -223,7 +224,7 @@ modify_posterior <- function(n, object, x_vec, p_samples, hormesis_def) {
 
 #' extract_warnings
 #'
-#' Extract warnings from brmsfit object
+#' Extract warnings from a \code{\link[brms]{brmsfit}} object.
 #'
 #' @param x An object of class \code{\link[brms]{brmsfit}}.
 #'
@@ -281,19 +282,53 @@ nice_ecx_out <- function(ec, ecx_tag) {
 }
 
 #' @noRd
+contains_zero <- function(x) {
+  sum(x == 0, na.rm = TRUE) >= 1
+}
+
+#' @noRd
+contains_one <- function(x) {
+  sum(x == 1, na.rm = TRUE) >= 1
+}
+
+#' @noRd
+contains_negative <- function(x) {
+  any(x < 0, na.rm = TRUE)
+}
+
+#' @noRd
 response_link_scale <- function(response, family) {
   link_tag <- family$link
+  min_z_val <- min(response[which(response > 0)]) / 100
+  if (link_tag == "logit") {  
+    max_o_val <- max(response[which(response < 1)]) +
+      (1 - max(response[which(response < 1)])) * 0.99
+  }
+  lr <- linear_rescale
   custom_name <- check_custom_name(family)
   if (link_tag %in% c("logit", "log")) {
     if (custom_name == "beta_binomial2") {
+      if (contains_zero(response)) {
+        response <- lr(response, r_out = c(min_z_val, max(response)))
+      }
+      if (contains_one(response)) {
+        response <- lr(response, r_out = c(min(response), max_o_val))
+      }
       response <- binomial(link = link_tag)$linkfun(response)
+    } else if (family$family %in% c("bernoulli", "binomial")) {
+      if (contains_zero(response)) {
+        response <- lr(response, r_out = c(min_z_val, max(response)))
+      }
+      if (contains_one(response)) {
+        response <- lr(response, r_out = c(min(response), max_o_val))
+      }
+      response <- family$linkfun(response)
     } else {
-      if (family$family == "binomial") {
-        response <- linear_rescale(response, r_out = c(0.001, 0.999))
+      if (contains_zero(response)) {
+        response <- lr(response, r_out = c(min_z_val, max(response)))
       }
       response <- family$linkfun(response)
     }
-    response <- response[is.finite(response)]
   }
   response
 }
@@ -352,4 +387,147 @@ gm_mean <- function(x, na_rm = TRUE, zero_propagate = FALSE) {
 #' @noRd
 summarise_posterior <- function(mat, x_vec) {
   cbind(x = x_vec, data.frame(t(apply(mat, 2, estimates_summary))))
+}
+
+#' @noRd
+is_character <- function(x) {
+  if (is.na(x)) x <- as.character(x)
+  is.character(x)
+}
+
+#' @noRd
+expand_model_set <- function(model) {
+  msets <- names(mod_groups)
+  if (any(model %in% msets)) {
+    group_mods <- intersect(model, msets)
+    model <- union(model, unname(unlist(mod_groups[group_mods])))
+    model <- setdiff(model, msets)
+  }
+  model
+}
+
+#' @noRd
+retrieve_valid_family <- function(named_list, data) {
+  if (!"family" %in% names(named_list)) {
+    y <- retrieve_var(data, "y_var", error = TRUE)
+    tr <- retrieve_var(data, "trials_var")
+    family <- set_distribution(y, support_integer = TRUE, trials = tr)
+  } else {
+    family <- named_list$family
+  }
+  validate_family(family)
+}
+
+#' @noRd
+define_loo_controls <- function(loo_controls, family_str) {
+  if (missing(loo_controls)) {
+    loo_controls <- list(fitting = list(), weights = list(method = "pseudobma"))
+  } else {
+    loo_controls <- validate_loo_controls(loo_controls, family_str)
+    if (!"method" %in% names(loo_controls$weights)) {
+      loo_controls$weights$method <- "pseudobma"
+    }
+  }
+  loo_controls
+}
+
+#' @noRd
+retrieve_var <- function(data, var, error = FALSE) {
+  bnec_vars <- attr(data, "bnec_pop")
+  bnec_pop <- names(bnec_vars)
+  v_pos <- which(bnec_pop == var)
+  out <- try(data[[v_pos]], silent = TRUE)
+  if (inherits(out, "try-error")) {
+    if (error) {
+      stop("The input variable \"", bnec_vars[[var]],
+           "\" was not properly specified in formula. See ?bayesnecformula")
+    }
+    NULL
+  } else if (is.numeric(out)) {
+    if (!is.vector(out)) {
+      message("You most likely provided a function to transform your \"",
+              bnec_vars[[var]], "\" that does not return a vector. This is",
+              " likely to cause issues with sampling in Stan. ",
+              " Forcing it to be a vector...")
+    }
+    as.vector(out)
+  } else {
+    stop("The input variable \"", bnec_vars[[var]],
+         "\" is not numeric.")
+  }
+}
+
+#' @noRd
+add_brm_defaults <- function(brm_args, model, family, predictor, response,
+                             skip_check, custom_name) {
+  if (!("chains" %in% names(brm_args))) {
+    brm_args$chains <- 4
+  }
+  if (!("sample_prior" %in% names(brm_args))) {
+    brm_args$sample_prior <- "yes"
+  }
+  if (!("iter" %in% names(brm_args))) {
+    brm_args$iter <- 1e4
+  }
+  if (!("warmup" %in% names(brm_args))) {
+    brm_args$warmup <- floor(brm_args$iter / 5) * 4
+  }
+  priors <- try(validate_priors(brm_args$prior, model), silent = TRUE)
+  if (inherits(priors, "try-error")) {
+    brm_args$prior <- define_prior(model, family, predictor, response)
+  } else {
+    brm_args$prior <- priors
+  }
+  if (!("inits" %in% names(brm_args)) || skip_check) {
+    msg_tag <- ifelse(family$family == "custom", custom_name, family$family)
+    message(paste0("Finding initial values which allow the response to be",
+                   " fitted using a ", model, " model and a ", msg_tag,
+                   " distribution."))
+    response_link <- response_link_scale(response, family)
+    inits <- make_good_inits(model, predictor, response_link,
+                             priors = brm_args$prior, chains = brm_args$chains)
+    if (length(inits) == 1 && "random" %in% names(inits)) {
+      inits <- inits$random
+    }
+    brm_args$inits <- inits
+  }
+  brm_args
+}
+
+#' @noRd
+extract_formula <- function(x) {
+  out <- try(x[["bayesnecformula"]], silent = TRUE)
+  if (inherits(out, "try-error")) {
+    NA
+  } else {
+    out
+  }
+}
+
+#' @noRd
+#' @importFrom stats model.frame
+has_family_changed <- function(x, data, ...) {
+  brm_args <- list(...)
+  for (i in seq_along(x)) {
+    formula <- extract_formula(x[[i]])
+    bdat <- model.frame(formula, data = data, run_par_checks = TRUE)
+    model <- get_model_from_formula(formula)
+    family <- retrieve_valid_family(brm_args, bdat)
+    model <- check_models(model, family, bdat)
+    checked_df <- check_data(data = bdat, family = family, model = model)
+  }
+  out <- all.equal(checked_df$family, x[[1]]$fit$family,
+                   check.attributes = FALSE, check.environment = FALSE)
+  if (is.logical(out)) {
+    FALSE
+  } else {
+    TRUE
+  }
+}
+
+#' @noRd
+find_transformations <- function(data) {
+  bnec_pop_vars <- attr(data, "bnec_pop")
+  # what bout when no variable?
+  unname(bnec_pop_vars[!bnec_pop_vars %in% names(data)])
 }

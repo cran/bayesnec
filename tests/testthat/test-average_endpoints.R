@@ -1,9 +1,5 @@
 library(bayesnec)
 
-data(manec_example)
-ecx4param <- pull_out(manec_example, model = "ecx4param")
-nec4param <- pull_out(manec_example, model = "nec4param")
-
 test_that("x must be a named list", {
   expect_error(average_endpoints(list(ecx4param, nec4param)))
   expect_error(average_endpoints(ecx4param, nec4param))
@@ -25,7 +21,7 @@ test_that("xform passes correctly", {
 test_that("posterior passes correctly", {
   ae3 <- average_endpoints(list(ecx4param = ecx4param, nec4param = nec4param),
                            posterior = TRUE)
-  expect_equal(length(ae3), 10)
+  expect_equal(length(ae3), 100)
 })
 
 test_that("prob_vals passes correctly", {

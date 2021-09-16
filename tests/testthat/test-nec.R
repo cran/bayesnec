@@ -2,11 +2,10 @@ library(bayesnec)
 library(brms)
 
 data(manec_example)
-ecx4param <- pull_out(manec_example, model = "ecx4param")
-nec4param <- pull_out(manec_example, model = "nec4param")
 
 test_that("nec returns expected object types", {
-  nec_summary <- nec(manec_example)
+  nec_summary <- nec(manec_example) %>%
+    suppressMessages
   expect_equal(length(nec_summary), 3)
 })
 
@@ -36,7 +35,7 @@ test_that("xform passes correctly", {
 
 test_that("posterior passes correctly", {
   nec3 <- nec(nec4param, posterior = TRUE)
-  expect_equal(length(nec3), 10)
+  expect_equal(length(nec3), 100)
 })
 
 test_that("prob_vals passes correctly", {

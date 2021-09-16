@@ -4,8 +4,7 @@
 #'
 #' @inheritParams bnec
 #'
-#' @return An object of class
-#' \code{\link[brms]{brmsformula}}.
+#' @return An \code{\link[base]{list}} of \code{\link[brms]{brmsformula}}.
 #'
 #' @examples
 #' library(bayesnec)
@@ -18,7 +17,7 @@
 #'
 #' @export
 show_params <- function(model = "all") {
-  if (class(model) != "character") {
+  if (!is.character(model)) {
     stop("Not a valid model name")
   }
   display <- function(x) {
@@ -26,14 +25,14 @@ show_params <- function(model = "all") {
   }
   msets <- names(mod_groups)
   if (any(model %in% msets)) {
-      group_mods <- intersect(model, msets)
-      model <- union(model, unname(unlist(mod_groups[group_mods])))
-      model <- setdiff(model, msets)
-      names(model) <- model
+    group_mods <- intersect(model, msets)
+    model <- union(model, unname(unlist(mod_groups[group_mods])))
+    model <- setdiff(model, msets)
+    names(model) <- model
   }
   if (length(model) > 1) {
     lapply(model, display)
   } else if (length(model) == 1) {
-    display(model)
+    list(display(model))
   }
 }

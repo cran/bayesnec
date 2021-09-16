@@ -1,26 +1,22 @@
-#' nec.default
-#'
-#' Extracts the predicted nec value as desired from an object of class
-#' \code{\link{bayesnecfit}} or \code{\link{bayesnecfit}}.
+#' Extracts the predicted NEC value as desired from an object of class
+#' \code{\link{bayesnecfit}} or \code{\link{bayesmanecfit}}.
 #'
 #' @param object An object of class \code{\link{bayesnecfit}} or
 #' \code{\link{bayesmanecfit}} returned by \code{\link{bnec}}.
 #' @param posterior A \code{\link[base]{logical}} value indicating if the full
-#' posterior sample of calculated nec values should be returned instead of
-#' just the median and 95 credible intervals.
+#' posterior sample of calculated NEC values should be returned instead of
+#' just the median and 95% credible intervals.
 #' @param xform A function to apply to the returned estimated concentration
 #' values.
 #' @param prob_vals A vector indicating the probability values over which to
-#' return the estimated nec value. Defaults to 0.5 (median) and 0.025 and
+#' return the estimated NEC value. Defaults to 0.5 (median) and 0.025 and
 #' 0.975 (95 percent credible intervals).
 #'
 #' @seealso \code{\link{bnec}}
 #'
-#' @return A vector containing the estimated nec value, including upper and
+#' @return A vector containing the estimated NEC value, including upper and
 #' lower 95% credible interval bounds
 #' (or other interval as specified by prob_vals).
-#'
-#' @importFrom stats quantile predict
 #'
 #' @examples
 #' library(bayesnec)
@@ -28,7 +24,24 @@
 #' nec(manec_example)
 #'
 #' @export
-nec.default <- function(object, posterior = FALSE,  xform = NA,
+nec <- function(object, posterior = FALSE, xform = NA,
+                prob_vals = c(0.5, 0.025, 0.975)) {
+  UseMethod("nec")
+}
+
+#' @inheritParams nec
+#'
+#' @param object An object of class \code{\link{bayesnecfit}} returned by
+#' \code{\link{bnec}}.
+#'
+#' @inherit nec seealso return examples
+#' 
+#' @importFrom stats quantile predict
+#'
+#' @noRd
+#'
+#' @export
+nec.default <- function(object, posterior = FALSE, xform = NA,
                         prob_vals = c(0.5, 0.025, 0.975)) {
   if (length(prob_vals) < 3 | prob_vals[1] < prob_vals[1] |
         prob_vals[1] > prob_vals[3] | prob_vals[2] > prob_vals[3]) {
@@ -55,56 +68,36 @@ nec.default <- function(object, posterior = FALSE,  xform = NA,
   }
 }
 
-#' nec
+#' @inheritParams nec
 #'
-#' Extracts the predicted nec value as desired from an object of class
-#' \code{\link{bayesnecfit}} or \code{\link{bayesnecfit}}.
+#' @param object An object of class \code{\link{bayesnecfit}} returned by
+#' \code{\link{bnec}}.
 #'
-#' @inheritParams nec.default
+#' @inherit nec seealso return examples
 #'
-#' @param object An object of class \code{\link{bayesnecfit}} or
-#' \code{\link{bayesnecfit}} returned by \code{\link{bnec}}.
-#'
-#' @inherit nec.default return details seealso examples
+#' @noRd
 #'
 #' @export
-nec <- function(object, posterior = FALSE,
-                 xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
-  UseMethod("nec")
+nec.bayesnecfit <- function(object, posterior = FALSE, xform = NA,
+                            prob_vals = c(0.5, 0.025, 0.975)) {
+  nec.default(object, posterior = posterior, xform = xform,
+              prob_vals = prob_vals)
 }
 
-#' nec.bayesnecfit
-#'
-#' Extracts the predicted nec value as desired from an object of class
-#' \code{\link{bayesnecfit}}.
-#'
-#' @param object An object of class \code{\link{bayesnecfit}}
-#' returned by \code{\link{bnec}}.
-#' @param ... Additional arguments to \code{\link{nec}}
-#'
-#' @inherit nec return details seealso examples
-#' @export
-nec.bayesnecfit <- function(object, ...) {
-  nec.default(object, ...)
-}
-
-#' nec.bayesmanecfit
-#'
-#' Extracts the predicted nec value as desired from an object of class
-#' \code{\link{bayesmanecfit}}.
-#'
 #' @inheritParams nec
 #'
 #' @param object An object of class \code{\link{bayesmanecfit}} returned by
 #' \code{\link{bnec}}.
 #'
-#' @inherit nec return details seealso examples
-#'
+#' @inherit nec seealso return examples
+#' 
 #' @importFrom stats quantile
 #'
+#' @noRd
+#'
 #' @export
-nec.bayesmanecfit <- function(object, posterior = FALSE,
-                               xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
+nec.bayesmanecfit <- function(object, posterior = FALSE, xform = NA,
+                              prob_vals = c(0.5, 0.025, 0.975)) {
   if (max(grepl("ecx", names(object$mod_fits))) == 1) {
     message("bayesmanecfit contains ecx model types and therefore nec",
             " estimate includes nsec values.")

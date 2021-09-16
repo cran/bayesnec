@@ -13,10 +13,11 @@
   add_ec10 = FALSE,
   xform = NA,
   lxform = NA,
+  force_x = FALSE,
   jitter_x = FALSE,
   jitter_y = FALSE,
-  ylab = "response",
-  xlab = "concentration",
+  ylab = "Response",
+  xlab = "Predictor",
   xticks = NA
 )
 }
@@ -44,6 +45,11 @@ estimated EC10 value and 95\% credible intervals should be added to the plot.}
 \item{lxform}{A function to be applied as a transformation only to axis
 labels and the annotated NEC / EC10 values.}
 
+\item{force_x}{A \code{\link[base]{logical}} value indicating if the argument
+\code{xform} should be forced on the predictor values. This is useful when
+the user transforms the predictor beforehand
+(e.g. when using a non-standard base function).}
+
 \item{jitter_x}{A \code{\link[base]{logical}} value indicating if the x
 data points on the plot should be jittered.}
 
@@ -63,6 +69,6 @@ the x-axis.}
 a plot of the fitted model
 }
 \description{
-Generates a plot of a fitted "bayesnecfit" model, as returned by
+Generates a plot of a fitted \code{\link{bayesnecfit}} model, as returned by
 \code{\link{bnec}}.
 }

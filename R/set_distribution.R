@@ -10,6 +10,7 @@
 #'
 #' @return A \code{\link[base]{character}} vector.
 #'
+#' @noRd
 set_distribution <- function(x, support_integer = FALSE, trials = NULL) {
   if (inherits(x, "numeric")) {
     if (!is.null(trials)) {
@@ -19,6 +20,13 @@ set_distribution <- function(x, support_integer = FALSE, trials = NULL) {
     }
     if (min(x) >= 0) {
       if (max(x) > 1) {
+        if (all(x %% 1 == 0)) {
+          message("The input \"y_var\" is made up of whole numbers only,",
+                  "\neven though the class is numeric. The data will be ",
+                  "\nmodelled with a Gamma distribution. Change \"y_var\"",
+                  "\nclass to integer if the intention is to use a Poisson or",
+                  "\nNegative binomial distribution.")
+        }
         "Gamma"
       } else {
         "Beta"

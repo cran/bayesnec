@@ -4,11 +4,17 @@
 #'
 #' @inheritParams bnec
 #'
+#' @param priors Either a \code{\link[base]{data.frame}} of class
+#' \code{\link[brms]{brmsprior}}, or a \code{\link[base]{list}} containing
+#' multiple objects of class \code{\link[brms]{brmsprior}}.
+#'
 #' @return A \code{\link[base]{data.frame}} of class
 #' \code{\link[brms]{brmsprior}}.
+#'
+#' @noRd
 validate_priors <- function(priors, model) {
   if (missing(priors)) {
-    return(NULL)
+    stop("No valid prior specified.")
   }
   if (inherits(priors, "list")) {
     if (!model %in% names(priors)) {
@@ -18,16 +24,12 @@ validate_priors <- function(priors, model) {
     }
     priors <- priors[[model]]
     if (is.null(priors)) {
-      return(NULL)
+      stop("No valid prior specified.")
     }
   }
   if (!inherits(priors, "brmsprior")) {
-    message("Prior for model ", model,
-            " is not of class brmsprior; ",
-            "see ?bnec for argument details ",
-            "and example.\n",
-            "Using bayesnec default priors.")
-    return(NULL)
+    stop("Prior for model ", model, " is not of class brmsprior; see ?bnec for",
+         " argument details and example.\n Using bayesnec default priors.")
   }
   priors
 }
