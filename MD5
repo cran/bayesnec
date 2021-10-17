@@ -1,6 +1,6 @@
-59386a63f9fec5d06aacc4229837c0f6 *DESCRIPTION
+fcdcf18c2efd4a990ff6bdc53783da8f *DESCRIPTION
 6da2ea0e552c5b262aeda91c9768b572 *NAMESPACE
-d8d2711618b3a6ddacb6fc29af56e6d1 *NEWS.md
+68c6e161fc2fac48293ac47a9c13773e *NEWS.md
 2062b0e9d3875f2deb4e012ad1016967 *R/add_criteria.R
 5996478f1ac4f08084759bad547ce9ed *R/amend.R
 f8498a170f91f0653728f4682a970c4c *R/autoplot.R
@@ -16,7 +16,7 @@ bb0181cc22f711ab3f6571e992971243 *R/bnec.R
 084e1159fb43144d0854b214dab332b3 *R/bnecfit-class.R
 61f6a51e6f8cd93e5f3ccf1653b3fd40 *R/bnecfit-methods.R
 c66fa50fa8c9e7226743128ea32d4494 *R/check_chains.R
-ab77f57431eb6c3b83b64a480fb58ddf *R/check_data.R
+99057425f6f7ef5c67d212c6c53ed556 *R/check_data.R
 b6b9cbcba9b286cd8ee8e90e62da6461 *R/check_models.R
 688976284b2b52c4a91c99afb84f842e *R/check_priors.R
 89a1de111a8ac1d812573edee2cc658e *R/compare_endpoints.R
@@ -47,8 +47,8 @@ cd35ab6cfc2595b49c64956eb8c8db73 *R/sample_priors.R
 1a8811c62d73dc9748ee6257bc324b39 *R/validate_family.R
 42b8a5194605fb57d4ce38ead6f66a05 *R/validate_loo_controls.R
 95b2c6a5f2512b48f1f842f24510aef0 *R/validate_priors.R
-67c16c190cb4749207c1db7f3d018c87 *README.md
-0c8f7682ba293922a0064506b3dea917 *build/vignette.rds
+5af70e097ad77ec4e367bd2e46f6db75 *README.md
+41b05d9717e18437eb37fc2903c12547 *build/vignette.rds
 b2b439ae67d6779bff836508ff01cb00 *data/beta_binomial2.rda
 ac14738e514a3bb5fa2d712b5ff63ac8 *data/herbicide.rda
 dce8f42f0370bc2ff7e0f9468b547439 *data/manec_example.rda
@@ -150,11 +150,11 @@ a32c91b1fa540f562e7274c471d49d52 *tests/testthat/test-compare_posterior.R
 f47ff3a8276a9e9e13ead15afc14598d *tests/testthat/test-define_prior.R
 487531dd7a8021f317e45916443facfe *tests/testthat/test-dispersion.R
 f3afdc5c48cf19dfb35d13e6bb7ab57e *tests/testthat/test-ecx.R
-2056fbd690dbb0d853e85bf30bd7d1c7 *tests/testthat/test-expand_classes.R
+a81404c5672172ed2997301c087ec1a7 *tests/testthat/test-expand_classes.R
 d7cba0279228fb8fbee2ea2ab401afee *tests/testthat/test-helpers.R
 93a204e4c38809a6ab6a8426db17cbd6 *tests/testthat/test-make_brmsformula.R
 b6e7285853f91de3a4ca40853c5e5a30 *tests/testthat/test-model.frame.R
-54ed5e110c349d05d7f39dbe1851f3b9 *tests/testthat/test-nec.R
+1d5c168dd339298564eccbc6769d5e47 *tests/testthat/test-nec.R
 6b6a81af8c990162688e465d54fcf84c *tests/testthat/test-nsec.R
 cadd7ebf48fc366ada2344d4615a1c77 *tests/testthat/test-pull_out.R
 7ff5c6d833bd77f4e1326d093fba9a92 *tests/testthat/test-set_distribution.R
