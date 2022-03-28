@@ -1,6 +1,6 @@
-fcdcf18c2efd4a990ff6bdc53783da8f *DESCRIPTION
+56279a6f9e877941f98f5932cb024802 *DESCRIPTION
 6da2ea0e552c5b262aeda91c9768b572 *NAMESPACE
-68c6e161fc2fac48293ac47a9c13773e *NEWS.md
+2acabbe1d60a2f82c19ec0bf34d34afb *NEWS.md
 2062b0e9d3875f2deb4e012ad1016967 *R/add_criteria.R
 5996478f1ac4f08084759bad547ce9ed *R/amend.R
 f8498a170f91f0653728f4682a970c4c *R/autoplot.R
@@ -10,7 +10,7 @@ ef6c3cf4715c199bf245a52d98aec024 *R/bayesmanecfit-class.R
 93af94dd746173b4b85c6cb8a1d81f0e *R/bayesnec-package.R
 0d146f3c9bb0d4b0754d1388b2934644 *R/bayesnecfit-class.R
 f999eb7cbcf9348c18b51327c3ec208a *R/bayesnecfit-methods.R
-4b9989426443d5e550b505e846400b72 *R/bayesnecformula.R
+4805332024340164dfe3ce63d9d0a0a9 *R/bayesnecformula.R
 b5040831534f67351fd6d194926014c0 *R/beta_binomial2.R
 bb0181cc22f711ab3f6571e992971243 *R/bnec.R
 084e1159fb43144d0854b214dab332b3 *R/bnecfit-class.R
@@ -26,7 +26,7 @@ b6b9cbcba9b286cd8ee8e90e62da6461 *R/check_models.R
 dabd5e7100a6f68436ada0e02928ef04 *R/define_prior.R
 015a8cbf2eb282b94398a5ae44c4da83 *R/dispersion.R
 ffb1ea958d1eab9b162599eb7326d390 *R/ecx.R
-cbe810df878517b67596852987695fe6 *R/expand_classes.R
+36c66952b56273e16a84906586ec800a *R/expand_classes.R
 641d96862f292e259e44449f657bc994 *R/extract_simdat.R
 a0988579fd35fa042745cfc1bb957bd9 *R/fit_bayesnec.R
 39bd41ea99f5bdd5795076a26f1caf6d *R/helpers.R
@@ -48,7 +48,7 @@ cd35ab6cfc2595b49c64956eb8c8db73 *R/sample_priors.R
 42b8a5194605fb57d4ce38ead6f66a05 *R/validate_loo_controls.R
 95b2c6a5f2512b48f1f842f24510aef0 *R/validate_priors.R
 5af70e097ad77ec4e367bd2e46f6db75 *README.md
-41b05d9717e18437eb37fc2903c12547 *build/vignette.rds
+0c8f7682ba293922a0064506b3dea917 *build/vignette.rds
 b2b439ae67d6779bff836508ff01cb00 *data/beta_binomial2.rda
 ac14738e514a3bb5fa2d712b5ff63ac8 *data/herbicide.rda
 dce8f42f0370bc2ff7e0f9468b547439 *data/manec_example.rda
@@ -57,8 +57,8 @@ f850098f1e35a5f411d08df49d7f2d4b *inst/doc/example1.Rmd
 c82aca85f36b06969c20e082b958510a *inst/doc/example1.html
 4973cc17b7a8d3070d669f29af9fdf9b *inst/doc/example2.Rmd
 6e037b4c10cebe89bb0a9b568363d07e *inst/doc/example2.html
-184ad496d9fb9d55635ac535061a12d6 *inst/doc/example2b.Rmd
-5b44f9e4d2698cda27555b75ad934f9e *inst/doc/example2b.html
+083f87df500d71d34a15942b68118ba4 *inst/doc/example2b.Rmd
+a4b7e6255f6bae9035aaf668a7fb705c *inst/doc/example2b.html
 f0072c011c06c982779b8af36c6242a4 *inst/doc/example3.Rmd
 13aeddda38769adf850b00fc658b1cb6 *inst/doc/example3.html
 e52d0525234ae069bd97e92a2dc3eff2 *inst/doc/example4.Rmd
@@ -158,6 +158,7 @@ b6e7285853f91de3a4ca40853c5e5a30 *tests/testthat/test-model.frame.R
 6b6a81af8c990162688e465d54fcf84c *tests/testthat/test-nsec.R
 cadd7ebf48fc366ada2344d4615a1c77 *tests/testthat/test-pull_out.R
 7ff5c6d833bd77f4e1326d093fba9a92 *tests/testthat/test-set_distribution.R
+8100a67c712062d719342a8c496999f5 *tests/testthat/test-substitute_x_in_formula.R
 fb9f2d33a666b626ff910b05d18a0188 *tests/testthat/test-validate_loo_controls.R
 ca1dd9097b0e718911cbe2a9e1aa059c *tests/testthat/test-wrangle_model_formula.R
 616f87e2b2d8175b691471478ef9be65 *vignettes/bayesnec.bib
@@ -165,8 +166,8 @@ f850098f1e35a5f411d08df49d7f2d4b *vignettes/example1.Rmd
 f811d48590967185c01447a729d192c4 *vignettes/example1.Rmd.orig
 4973cc17b7a8d3070d669f29af9fdf9b *vignettes/example2.Rmd
 07f9906a9355317deab05b18f8c9361d *vignettes/example2.Rmd.orig
-184ad496d9fb9d55635ac535061a12d6 *vignettes/example2b.Rmd
-802f24e8be49ae0fcf09f09cf7fbcf4d *vignettes/example2b.Rmd.orig
+083f87df500d71d34a15942b68118ba4 *vignettes/example2b.Rmd
+9840a5b243082854874277a35a2851d7 *vignettes/example2b.Rmd.orig
 f0072c011c06c982779b8af36c6242a4 *vignettes/example3.Rmd
 773d5511c73ca3607b34c0ea9689eca3 *vignettes/example3.Rmd.orig
 e52d0525234ae069bd97e92a2dc3eff2 *vignettes/example4.Rmd
