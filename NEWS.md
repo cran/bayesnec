@@ -1,3 +1,11 @@
+# bayesnec 2.0.2.5
+
+- Fixed issue with new "inits"-->"init" argument name in `brm` ([`30eb8e6`](https://github.com/open-AIMS/bayesnec/commit/30eb8e6)).
+
+# bayesnec 2.0.2.4
+
+- Fixed issue with new prior structures in `brms` ([`c5c16be`](https://github.com/open-AIMS/bayesnec/commit/c5c16be)).
+
 # bayesnec 2.0.2.3
 
 - Fixed issue with `expand_manec` ([`1ced4d4`](https://github.com/open-AIMS/bayesnec/commit/1ced4d4)).

@@ -120,13 +120,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   for (var i = 0; i < sheets.length; i++) {
     if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
     try { var rules = sheets[i].cssRules; } catch (e) { continue; }
-    for (var j = 0; j < rules.length; j++) {
+    var j = 0;
+    while (j < rules.length) {
       var rule = rules[j];
       // check if there is a div.sourceCode rule
-      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -459,19 +466,38 @@ the prior.</p>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>exmp_a <span class="ot">&lt;-</span> <span class="fu">bnec</span>(y <span class="sc">~</span> <span class="fu">crf</span>(x, <span class="at">model =</span> <span class="st">&quot;nec3param&quot;</span>), <span class="at">data =</span> nec_data,</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">family =</span> <span class="fu">Beta</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>),</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">iter =</span> <span class="fl">1e4</span>, <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> <span class="fl">0.99</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(exmp_a)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(exmp_a)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;bayesnecfit&quot; &quot;bnecfit&quot;</span></span></code></pre></div>
 <p>We can view the prior and posterior probability densities of all the
 parameters in the model using the function <code>check_prior</code>,
 based on the <code>hypothesis</code> function of <code>brms</code>. This
 can be useful to assess if priors are suitably vague, and/or if they
 might be having an undesirable influence on the posterior.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">check_priors</span>(exmp_a)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" alt="plot of chunk exmp3-checkpriors" width="100%" style="display: block; margin: auto;" /></p>
 <p>In this case the priors seem reasonably vague, however there will be
 times when it is necessary to modify these priors. The user can take
 advantage of the function <code>pull_prior</code> to inspect what
 <code>bnec</code> came up with on its own, and decide how best to modify
 those priors to be more desirable.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pull_prior</span>(exmp_a)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pull_prior</span>(exmp_a)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                       prior class      coef group resp</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                normal(0, 5)     b                     </span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                normal(0, 5)     b Intercept           </span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  gamma(5, 2.28313180499098)     b                     </span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  gamma(5, 2.28313180499098)     b Intercept           </span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                  beta(5, 2)     b                     </span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                  beta(5, 2)     b Intercept           </span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;           gamma(0.01, 0.01)   phi                     </span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  dpar nlpar               lb               ub       source</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        beta                                           user</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        beta                                   (vectorized)</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         nec 0.03234801324009 3.22051966293556         user</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         nec 0.03234801324009 3.22051966293556 (vectorized)</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         top                0                1         user</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;         top                0                1 (vectorized)</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            0                       default</span></span></code></pre></div>
 <p><code>bnec</code> chose a <code>gamma</code> prior on the
 <em>NEC</em> parameter of <strong>nec3param</strong> because the
 predictor <code>nec_data$x</code> is non-zero positive. However, imagine
@@ -493,7 +519,12 @@ user does not know what parameters were comprised in a particular model.
 In those instances, the user can call the function
 <code>show_params(model = &quot;all&quot;)</code> to inspect the parameters of
 each function, or some targeted function in particular.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">show_params</span>(<span class="at">model =</span> <span class="st">&quot;nec3param&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">show_params</span>(<span class="at">model =</span> <span class="st">&quot;nec3param&quot;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; y ~ top * exp(-exp(beta) * (x - nec) * step(x - nec)) </span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; top ~ 1</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta ~ 1</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; nec ~ 1</span></span></code></pre></div>
 </div>
 <div id="bayesmanecfit" class="section level3">
 <h3>bayesmanecfit</h3>
@@ -516,22 +547,61 @@ allows an option of passing a filename to save the prior and posterior
 probability density plots to a pdf.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pull_prior</span>(exmp_c)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">check_priors</span>(exmp_c, <span class="at">filename =</span> <span class="st">&quot;Check_priors&quot;</span>)</span></code></pre></div>
+<pre><code>#&gt; $nec3param
+#&gt;              prior class      coef group resp dpar nlpar
+#&gt;      gamma(0.5, 2)     b                            beta
+#&gt;      gamma(0.5, 2)     b Intercept                  beta
+#&gt;   normal(1.3, 2.7)     b                             nec
+#&gt;   normal(1.3, 2.7)     b Intercept                   nec
+#&gt;         beta(5, 1)     b                             top
+#&gt;         beta(5, 1)     b Intercept                   top
+#&gt;  gamma(0.01, 0.01)   phi                                
+#&gt;  lb ub       source
+#&gt;                user
+#&gt;        (vectorized)
+#&gt;                user
+#&gt;        (vectorized)
+#&gt;                user
+#&gt;        (vectorized)
+#&gt;   0         default
+#&gt; 
+#&gt; $nec4param
+#&gt;              prior class      coef group resp dpar nlpar
+#&gt;      gamma(0.5, 2)     b                            beta
+#&gt;      gamma(0.5, 2)     b Intercept                  beta
+#&gt;         beta(1, 5)     b                             bot
+#&gt;         beta(1, 5)     b Intercept                   bot
+#&gt;   normal(1.3, 2.7)     b                             nec
+#&gt;   normal(1.3, 2.7)     b Intercept                   nec
+#&gt;         beta(5, 1)     b                             top
+#&gt;         beta(5, 1)     b Intercept                   top
+#&gt;  gamma(0.01, 0.01)   phi                                
+#&gt;  lb ub       source
+#&gt;                user
+#&gt;        (vectorized)
+#&gt;                user
+#&gt;        (vectorized)
+#&gt;                user
+#&gt;        (vectorized)
+#&gt;                user
+#&gt;        (vectorized)
+#&gt;   0         default</code></pre>
 <p>The user can also specify priors for one model only out of the entire
 set, <code>bayesnec</code> will return a message stating that it is
 searching for priors on its own when they are either ill-formed
 (e.g. incomplete or have a typo), or the user simply decided not to
 specify priors for a particular model, e.g.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>my_priors <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">nec3param =</span> <span class="fu">c</span>(<span class="fu">prior_string</span>(<span class="st">&quot;beta(5, 1)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;top&quot;</span>),</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;normal(1.3, 2.7)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;nec&quot;</span>),</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;gamma(0.5, 2)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;beta&quot;</span>)),</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nec4param =</span> <span class="fu">c</span>(<span class="fu">prior_string</span>(<span class="st">&quot;beta(5, 1)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;top&quot;</span>),</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;normal(1.3, 2.7)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;nec&quot;</span>),</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;gamma(0.5, 2)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;beta&quot;</span>),</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;beta(1, 5)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;bot&quot;</span>)))</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>exmp_d <span class="ot">&lt;-</span> <span class="fu">bnec</span>(y <span class="sc">~</span> <span class="fu">crf</span>(x, <span class="at">model =</span> <span class="fu">c</span>(<span class="st">&quot;nec3param&quot;</span>, <span class="st">&quot;nec4param&quot;</span>)), <span class="at">data =</span> nec_data,</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">family =</span> <span class="fu">Beta</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>), <span class="at">prior =</span> my_priors[<span class="dv">1</span>],</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">iter =</span> <span class="fl">1e4</span>, <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> <span class="fl">0.99</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>my_priors <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">nec3param =</span> <span class="fu">c</span>(<span class="fu">prior_string</span>(<span class="st">&quot;beta(5, 1)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;top&quot;</span>),</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;normal(1.3, 2.7)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;nec&quot;</span>),</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;gamma(0.5, 2)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;beta&quot;</span>)),</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">nec4param =</span> <span class="fu">c</span>(<span class="fu">prior_string</span>(<span class="st">&quot;beta(5, 1)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;top&quot;</span>),</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;normal(1.3, 2.7)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;nec&quot;</span>),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;gamma(0.5, 2)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;beta&quot;</span>),</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>                                <span class="fu">prior_string</span>(<span class="st">&quot;beta(1, 5)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;bot&quot;</span>)))</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>exmp_d <span class="ot">&lt;-</span> <span class="fu">bnec</span>(y <span class="sc">~</span> <span class="fu">crf</span>(x, <span class="at">model =</span> <span class="fu">c</span>(<span class="st">&quot;nec3param&quot;</span>, <span class="st">&quot;nec4param&quot;</span>)), <span class="at">data =</span> nec_data,</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">family =</span> <span class="fu">Beta</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>), <span class="at">prior =</span> my_priors[<span class="dv">1</span>],</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">iter =</span> <span class="fl">1e4</span>, <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> <span class="fl">0.99</span>))</span></code></pre></div>
 <p><code>prior = my_priors[[1]]</code> would also have worked because
 the argument priors can either take a <code>brmsprior</code> object
 directly, or a named list containing model-specific
@@ -539,11 +609,11 @@ directly, or a named list containing model-specific
 <p>Finally the user can also extend an existing
 <code>bayesmanecfit</code> object with the function <code>amend</code>,
 also by specifying custom-built <code>priors</code>.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>necsigm_priors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">prior_string</span>(<span class="st">&quot;beta(5, 1)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;top&quot;</span>),</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">prior_string</span>(<span class="st">&quot;gamma(2, 6.5)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;beta&quot;</span>),</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">prior_string</span>(<span class="st">&quot;normal(1.3, 2.7)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;nec&quot;</span>),</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">prior_string</span>(<span class="st">&quot;normal(0, 2)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;d&quot;</span>))</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>exmp_e <span class="ot">&lt;-</span> <span class="fu">amend</span>(exmp_d, <span class="at">add =</span> <span class="st">&quot;necsigm&quot;</span>, <span class="at">priors =</span> necsigm_priors)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>necsigm_priors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">prior_string</span>(<span class="st">&quot;beta(5, 1)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;top&quot;</span>),</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">prior_string</span>(<span class="st">&quot;gamma(2, 6.5)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;beta&quot;</span>),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">prior_string</span>(<span class="st">&quot;normal(1.3, 2.7)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;nec&quot;</span>),</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">prior_string</span>(<span class="st">&quot;normal(0, 2)&quot;</span>, <span class="at">nlpar =</span> <span class="st">&quot;d&quot;</span>))</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>exmp_e <span class="ot">&lt;-</span> <span class="fu">amend</span>(exmp_d, <span class="at">add =</span> <span class="st">&quot;necsigm&quot;</span>, <span class="at">priors =</span> necsigm_priors)</span></code></pre></div>
 </div>
 </div>
 
