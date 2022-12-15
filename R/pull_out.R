@@ -3,6 +3,8 @@
 #' Subsets model(s) from an existing object of class \code{\link{bayesmanecfit}}
 #'
 #' @inheritParams bnec
+#' 
+#' @importFrom chk chk_character
 #'
 #' @param manec An object of class \code{\link{bayesmanecfit}} as returned by
 #' \code{\link{bnec}}.
@@ -10,8 +12,6 @@
 #' which model or suite of models to pull out.
 #' @param ... Additional arguments to \code{\link{expand_nec}} or
 #' \code{\link{expand_manec}}.
-#'
-#' @importFrom dplyr %>%
 #'
 #' @return If \code{model} is a string representing a single model, an object
 #' of class \code{\link{bayesnecfit}}; If \code{model} is instead a string
@@ -38,7 +38,7 @@ pull_out <- function(manec, model, loo_controls, ...) {
   if (missing(loo_controls)) {
     loo_controls <- list(fitting = list(), weights = list(method = old_method))
   } else {
-    fam_tag <- manec$mod_fits[[1]]$fit$family$family
+    fam_tag <- pull_brmsfit(pull_out(manec, model = names(manec$mod_fits[1])))$family$family
     loo_controls <- validate_loo_controls(loo_controls, fam_tag)
     if (length(loo_controls$weights) > 0) {
       message("You have specified a list of arguments in loo_control$weights; ",
@@ -85,18 +85,18 @@ pull_out <- function(manec, model, loo_controls, ...) {
   }
   formulas <- lapply(manec$mod_fits[to_go], extract_formula)
   mod_fits <- expand_manec(manec$mod_fits[to_go], formula = formulas,
-                           loo_controls = loo_controls, ...) %>%
-    suppressMessages %>%
-    suppressWarnings
+                           loo_controls = loo_controls, ...) |>
+    suppressMessages() |>
+    suppressWarnings()
   message("Pulling out model(s): ", paste0(to_go, collapse = ", "))
   if (length(mod_fits) > 1) {
     allot_class(mod_fits, c("bayesmanecfit", "bnecfit"))
   } else {
     mod_fits <- expand_nec(mod_fits[[1]], model = to_go,
                            formula = mod_fits[[1]]$bayesnecformula,
-                           loo_controls = loo_controls, ...) %>%
-    suppressMessages %>%
-    suppressWarnings
+                           loo_controls = loo_controls, ...) |>
+    suppressMessages() |>
+    suppressWarnings()
     allot_class(mod_fits, c("bayesnecfit", "bnecfit"))
   }
 }

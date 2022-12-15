@@ -4,17 +4,25 @@
 \alias{compare_fitted}
 \title{compare_fitted}
 \usage{
-compare_fitted(x, precision = 50, x_range = NA)
+compare_fitted(x, precision = 50, x_range = NA, make_newdata = TRUE, ...)
 }
 \arguments{
 \item{x}{A named \code{\link[base]{list}} of objects of class
 \code{\link{bayesnecfit}} or \code{\link{bayesmanecfit}} returned by
 \code{\link{bnec}}.}
 
-\item{precision}{The number of unique x values over which to find ECx -
+\item{precision}{The number of unique x values over which to find ECx --
 large values will make the ECx estimate more precise.}
 
 \item{x_range}{A range of x values over which to consider extracting ECx.}
+
+\item{make_newdata}{Should the
+user allow the package to create \code{newdata} for predictions?
+If so, arguments \code{precision} and \code{x_range} will be used. Defaults
+to TRUE. See details.}
+
+\item{...}{Further arguments that control posterior predictions via
+\code{\link[brms]{posterior_epred}}.}
 }
 \value{
 A named \code{\link[base]{list}} containing bootstrapped differences
@@ -25,6 +33,18 @@ in posterior predictions of the \code{\link{bayesnecfit}} or
 Extracts posterior predicted values from a list of class
 \code{\link{bayesnecfit}} or \code{\link{bayesmanecfit}} model fits and
 compares these across a vector of fitted values.
+}
+\details{
+The argument \code{make_newdata} is relevant to those who want the
+package to create a data.frame from which to make predictions. This is done
+via \code{\link{bnec_newdata}} and uses arguments \code{precision} and
+\code{x_range}. If \code{make_newdata = FALSE} and no additional
+\code{newdata} argument is provided (via \code{...}), then the predictions
+are made for the raw data. Else, to generate predictions for a specific
+user-specific data.frame, set \code{make_newdata = FALSE} and provide
+an additional data.frame via the \code{newdata} argument. For guidance
+on how to structure \code{newdata}, see for example
+\code{\link[brms]{posterior_epred}}.
 }
 \examples{
 \dontrun{

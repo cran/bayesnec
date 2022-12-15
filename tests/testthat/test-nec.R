@@ -4,8 +4,7 @@ library(brms)
 data(manec_example)
 
 test_that("nec returns expected object types", {
-  nec_summary <- nec(manec_example) %>%
-    suppressMessages
+  nec_summary <- suppressMessages(nec(manec_example))
   expect_equal(length(nec_summary), 3)
 })
 
@@ -16,17 +15,16 @@ test_that("doesn't work for ecx models", {
 test_that("works for bayesnecfit", {
   nec1 <- nec(nec4param)
   expect_equal(length(nec1), 3)
-  expect_equal(names(nec1), c("50%", "2.5%", "97.5%"))
+  expect_equal(names(nec1), c("Q50", "Q2.5", "Q97.5"))
 })
 
 test_that("works for bayesmanecfit", {
   mes <- paste0("bayesmanecfit contains ecx model types and therefore nec",
                 " estimate includes nsec values.")
-  nec1 <- nec(manec_example) %>%
-    suppressMessages
+  nec1 <- suppressMessages(nec(manec_example))
   expect_message(nec(manec_example), mes)
   expect_equal(length(nec1), 3)
-  expect_equal(names(nec1), c("50%", "2.5%", "97.5%"))
+  expect_equal(names(nec1), c("Q50", "Q2.5", "Q97.5"))
 })
 
 test_that("xform passes correctly", {
@@ -41,6 +39,6 @@ test_that("posterior passes correctly", {
 })
 
 test_that("prob_vals passes correctly", {
-  nec4 <- nec(nec4param, prob_vals = c(0.3, 0.5, 0.7))
-  expect_equal(names(nec4), c("30%", "50%", "70%"))
+  nec4 <- nec(nec4param, prob_vals = c(0.5, 0.3, 0.7))
+  expect_equal(names(nec4), c("Q50", "Q30", "Q70"))
 })

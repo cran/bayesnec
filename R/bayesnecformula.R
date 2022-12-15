@@ -2,9 +2,9 @@
 #' \code{\link[bayesnec:bayesnec-package]{bayesnec}}
 #'
 #' Set up a model formula for use in the 
-#' \code{\link[bayesnec:bayesnec-package]{bayesnec}} package allowing to
-#' define linear and non-linear (potentially multilevel) concentration-response
-#' models.
+#' \code{\link[bayesnec:bayesnec-package]{bayesnec}} package, allowing linear 
+#' and non-linear (potentially multi-level) concentration-response
+#' models to be defined.
 #'
 #' @aliases bnf
 #'
@@ -28,13 +28,13 @@
 #' \bold{The population-level term: \code{crf}}
 #'
 #' \code{\link[bayesnec:bayesnec-package]{bayesnec}} uses a special internal
-#' term called \code{crf} which sets the concentration-response equation
+#' term called \code{crf}, which sets the concentration-response equation
 #' to be evaluated based on some \code{x} predictor. The equation itself is
 #' defined by the argument \code{"model"}: a \code{\link[base]{character}}
 #' vector containing a specific model, a concatenation of specific models,
 #' or a single string defining a particular group of models
 #' (or group of equations, see \code{\link{models}}). Internally
-#' this argument is substituted by an actual \code{\link[brms]{brmsformula}}
+#' this argument is substituted by an actual \code{\link[brms]{brmsformula}},
 #' which is then passed onto \code{\link[brms]{brm}} for model fitting.
 #' 
 #' \bold{Group-level terms: \code{glterms}}
@@ -43,12 +43,12 @@
 #' \code{\link{bayesnecformula}}: 1) a general "offset" group-level effect
 #' defined by the term \code{ogl} (as in e.g. \code{ogl(group_variable)}). This
 #' adds an additional population-level parameter \code{ogl} to the model defined
-#' by \code{crf}, analogously to what an intercept-only group-level effect
-#' would be in a classic linear model. 2) a group-level effect applied to all
+#' by \code{crf}, analogously to an intercept-only group-level effect
+#' in a classic linear model. 2) A group-level effect applied to all
 #' parameters in a model at once. This is done by the special term \code{pgl},
-#' (as in e.g. \code{pgl(group_variable)}) which comes in handy so the user
+#' (as in e.g. \code{pgl(group_variable)}), which comes in handy so the user
 #' does not need to know the internal syntax and name of each parameter in the
-#' model. 3) a more classic approach where the user can specify which
+#' model. 3) A more classic approach where the user can specify which
 #' specific parameters --- NB: that requires prior knowledge on the model
 #' structure and parameter names --- to vary according to a grouping variable
 #' (as in e.g. \code{(bot | group_variable)}). \code{\link{bayesnecformula}}
@@ -66,19 +66,20 @@
 #' The only capability that \code{\link{bayesnecformula}} does not allow is
 #' the addition of \code{pterms} outside of the term \code{crf}. Although
 #' \code{pterms} can be passed to predictor \code{x} within \code{crf}, we
-#' strongly discourage the user because those functionalities have not
-#' been tested yet. If this is extremely important to your research, please
-#' raise an issue on GitHub and we will consider.
+#' strongly discourage their use because those functionalities have not
+#' been tested yet. If this is extremely important to your work, please
+#' raise an issue on bayesnec GitHub, and we will consider further testing and 
+#' development.
 #' Currently, the only two \code{aterms} that have validated behaviour are:
-#' 1) \code{trials()} which is essential in binomially-distributed data, e.g.
+#' 1) \code{trials()}, which is essential in binomially-distributed data, e.g.
 #' \code{y | trials(trials_variable)}, and 2) weights, e.g.
 #' \code{y | weights(weights_variable)}, following \pkg{brms} formula syntax.
 #' Please note that \pkg{brms} does not implement design weights as in other
-#' standard \pkg{base} function. From their help page, \pkg{brms} "takes the
+#' standard \pkg{base} functions. From their help page, \pkg{brms} "takes the
 #' weights literally, which means that an observation with weight 2 receives 2
 #' times more weight than an observation with weight 1. It also means that
 #' using a weight of 2 is equivalent to adding the corresponding observation
-#' twice to the data frame." Other \code{aterms} might be added, though we
+#' twice to the data frame". Other \code{aterms} might be added, though we
 #' cannot attest to their functionality within
 #' \code{\link[bayesnec:bayesnec-package]{bayesnec}}, i.e. checks will
 #' be done outside via \code{\link[brms]{brm}}.
@@ -220,29 +221,13 @@ check_formula <- function(formula, data, run_par_checks = FALSE) {
 #'
 #' @inheritParams check_formula
 #' @inherit check_formula examples details return
+#' 
+#' @importFrom formula.tools lhs rhs
 #'
 #' @export
 #' @noRd
 check_formula.bayesnecformula <- function(formula, data,
                                           run_par_checks = FALSE) {
-  check_formula.default(formula = formula, data = data,
-                        run_par_checks = run_par_checks)
-}
-
-#' Check if input model formula is appropriate to use with
-#' \code{\link[bayesnec:bayesnec-package]{bayesnec}}
-#'
-#' Perform a series of checks to ensure that the input formula is appropriately
-#' set up for usage within \code{\link[bayesnec:bayesnec-package]{bayesnec}}.
-#'
-#' @inheritParams check_formula
-#' @inherit check_formula examples details return
-#'
-#' @importFrom formula.tools lhs rhs
-#'
-#' @export
-#' @noRd
-check_formula.default <- function(formula, data, run_par_checks = FALSE) {
   if (!inherits(formula, "bayesnecformula")) {
     stop("Your formula must be of class bayesnecformula.")
   }
@@ -337,8 +322,8 @@ check_formula.default <- function(formula, data, run_par_checks = FALSE) {
       for (j in seq_along(vars)) {
         if (!vars[j] %in% names(data)) {
           stop("Group-level variable(s) ",
-                  paste0("\"", vars[j], "\"", collapse = "; "),
-                  " not found in dataset.")
+               paste0("\"", vars[j], "\"", collapse = "; "),
+               " not found in dataset.")
         } else if (any(sapply(data[, vars[j]], is.numeric))) {
           stop("Group-level variables cannot be numeric.")
         }
@@ -369,52 +354,18 @@ check_formula.default <- function(formula, data, run_par_checks = FALSE) {
   formula
 }
 
-#' Extracting the model frame from a \code{\link{bayesnecformula}}
+#' @rdname model.frame
+#' @order 4
 #'
-#' Recovers evaluated \code{\link[base]{data.frame}} given input \code{data}
-#' and a formula of class \code{\link{bayesnecformula}}.
-#'
-#' @param formula A formula of class \code{\link{bayesnecformula}}.
 #' @param data A \code{\link[base]{data.frame}} containing the variables
 #' specified in \code{formula}.
-#' @param ... Additional arguments to be passed to 
-#' \code{\link{check_formula}}.
+#'
+#' @method model.frame bayesnecformula
+#'
+#' @inherit model.frame description return examples details
 #'
 #' @importFrom stats model.frame na.omit
 #'
-#' @details If the formula contains transformations to variables x and y,
-#' these are evaluated and returned as part of the 
-#' \code{\link[base]{data.frame}}.
-#'
-#' @return A \code{\link[base]{data.frame}} with additional attributes
-#' detailing the population-level variables (attribute \code{"bnec_pop"})
-#' (response y, predictor x, and, if binomial a formula, trials) and, if
-#' applicable, the group-level variables (attribute \code{"bnec_group"}).
-#'
-#' @examples
-#' library(bayesnec)
-#' nec3param <- function(beta, nec, top, x) {
-#'   top * exp(-exp(beta) * (x - nec) *
-#'     ifelse(x - nec < 0, 0, 1))
-#' }
-#' 
-#' data <- data.frame(x = seq(1, 20, length.out = 10), tr = 100, wght = c(1, 2),
-#'                    group_1 = sample(c("a", "b"), 10, replace = TRUE),
-#'                    group_2 = sample(c("c", "d"), 10, replace = TRUE))
-#' data$y <- nec3param(beta = -0.2, nec = 4, top = 100, data$x)
-#' 
-#' f_1 <- y ~ crf(x, "nec3param")
-#' f_2 <- "y | trials(tr) ~ crf(sqrt(x), \"nec3param\")"
-#' f_3 <- y | trials(tr) ~ crf(x, "nec3param") + ogl(group_1) + pgl(group_2)
-#' f_4 <- y | trials(tr) ~ crf(x, "nec3param") + (nec + top | group_1)
-#' 
-#' m_1 <- model.frame(bnf(f_1), data)
-#' attr(m_1, "bnec_pop")
-#' model.frame(bnf(f_2), data)
-#' m_3 <- model.frame(bnf(f_3), data)
-#' attr(m_3, "bnec_group")
-#' model.frame(bnf(f_4), data)
-#' 
 #' @export
 model.frame.bayesnecformula <- function(formula, data, ...) {
   if (!inherits(data, "data.frame")) {

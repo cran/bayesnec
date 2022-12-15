@@ -9,8 +9,6 @@
 #' @details This is a wrapper function to test input data criteria and find the
 #' correct priors for use in \code{\link{fit_bayesnec}}.
 #'
-#' @importFrom stats na.omit
-#'
 #' @return A \code{\link[base]{list}} of modified elements
 #' necessary for \code{\link{fit_bayesnec}}.
 #'
@@ -71,7 +69,7 @@ check_data <- function(data, family, model) {
   mod_dat <- data.frame(x = data[[x_pos]], y = data[[y_pos]],
                         trials = nrow(data))
   bnec_group_vars <- attr(data, "bnec_group")
-  if (!is.na(bnec_group_vars)) {
+  if (any(!is.na(bnec_group_vars))) {
     are_numeric <- sapply(data[, bnec_group_vars, drop = FALSE], is.numeric)
     if (any(are_numeric)) {
       to_flag <- paste0(names(are_numeric)[are_numeric], collapse = "; ")

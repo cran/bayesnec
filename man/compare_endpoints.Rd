@@ -11,7 +11,7 @@ compare_endpoints(
   type = "absolute",
   hormesis_def = "control",
   sig_val = 0.01,
-  precision,
+  precision = 100,
   x_range = NA
 )
 }
@@ -37,7 +37,7 @@ significance of the predicted posterior values.
 against the lowest observed concentration (assumed to be the control), to
 estimate NEC as an interpolated NOEC value from smooth ECx curves.}
 
-\item{precision}{The number of unique x values over which to find ECx -
+\item{precision}{The number of unique x values over which to find ECx --
 large values will make the ECx estimate more precise.}
 
 \item{x_range}{A range of x values over which to consider extracting ECx.}
@@ -58,7 +58,8 @@ library(bayesnec)
 data(manec_example)
 nec4param <- pull_out(manec_example, model = "nec4param")
 ecx4param <- pull_out(manec_example, model = "ecx4param")
-compare_endpoints(list("nec" = ecx4param, "ecx" = nec4param), ecx_val = 50)
+compare_endpoints(list("nec" = ecx4param, "ecx" = nec4param), ecx_val = 50,
+comparison="ecx")
 }
 
 }

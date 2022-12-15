@@ -14,8 +14,8 @@
 #' @details The geometric mean of values are simply the mean calculated on a
 #' log scale and back transformed through \code{\link[base]{exp}}, although we
 #' have added the capacity to accommodate zero values. Note that the function
-#' assumes that \code{x} has been modelled on the natural scale. Often C-R
-#' models are more stable on a log transformed or sqrt scaling. If the input
+  #' assumes that \code{x} has been modelled on the natural scale. Often C-R
+#' models are more stable on a log-transformed or sqrt scaling. If the input
 #' \code{\link{bayesnecfit}} or \code{\link{bayesmanecfit}} model fits are
 #' already based on a re-scaling of the x (concentration) axis, it is important
 #' to pass an appropriate xform argument to ensure these are back transformed
@@ -27,18 +27,15 @@
 #' of the \code{\link{bayesnecfit}} or \code{\link{bayesmanecfit}}
 #' model fits contained in \code{x}. See Details.
 #'
-#' @importFrom stats quantile predict
-#' @importFrom dplyr %>% mutate bind_rows arrange
-#' @importFrom tidyr pivot_longer
-#' @importFrom tidyselect everything
-#' @importFrom utils combn
+#' @importFrom stats quantile
+#' @importFrom chk chk_lgl chk_character chk_numeric
 #'
 #' @examples
 #' \dontrun{
 #' library(brms)
 #' library(bayesnec)
 #' data(manec_example)
-#' data(nec4param)
+#' nec4param <- pull_out(manec_example, model = "nec4param")
 #' ecx4param <- pull_out(manec_example, model = "ecx4param")
 #' average_endpoints(list("nec" = ecx4param, "ecx" = nec4param), ecx_val = 50)
 #' }
@@ -47,7 +44,7 @@
 average_endpoints <- function(x, endpoint = "nec", ecx_val = 10,
                               posterior = FALSE, type = "absolute",
                               hormesis_def = "control", sig_val = 0.01,
-                              precision = 1000, x_range = NA, xform = NA,
+                              precision = 1000, x_range = NA, xform = identity,
                               prob_vals = c(0.5, 0.025, 0.975)) {
   if (!is.list(x) | is.null(names(x))) {
     stop("Argument x must be a named list")
@@ -55,7 +52,17 @@ average_endpoints <- function(x, endpoint = "nec", ecx_val = 10,
   if (!is.character(endpoint)) {
     stop("Argument endpoint must be a character vector")
   }
-  if (is.na(x_range)) {
+  chk_lgl(posterior)
+  chk_character(type)
+  chk_character(hormesis_def)
+  chk_numeric(ecx_val)
+  chk_numeric(sig_val)
+  chk_numeric(precision)
+  if (!inherits(xform, "function")) {
+    stop("xform must be a function.")
+  }
+  chk_numeric(prob_vals)
+  if (is.na(x_range[1])) {
     x_range <- return_x_range(x)
   }
   if (endpoint == "nec") {
@@ -77,10 +84,11 @@ average_endpoints <- function(x, endpoint = "nec", ecx_val = 10,
   r_posterior_list <- lapply(posterior_list, FUN = function(m, n_samples) {
     m[sample(seq_len(n_samples), replace = FALSE)]
   }, n_samples = n_samples)
-  posterior_data <- do.call("cbind", r_posterior_list) %>%
-      data.frame
+  posterior_data <- do.call("cbind", r_posterior_list) |>
+      data.frame()
   post_mean <- apply(posterior_data, MARGIN = 1, FUN = gm_mean)
   mean_estimate <- quantile(unlist(post_mean), na.rm = TRUE, probs = prob_vals)
+  names(mean_estimate) <- clean_names(mean_estimate)
   if (!posterior) {
     mean_estimate
   } else {

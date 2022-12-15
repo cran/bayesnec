@@ -1,3 +1,5 @@
+#' Amends an existing \code{\link{bayesmanecfit}} object
+#' 
 #' Amends an existing \code{\link{bayesmanecfit}} object, for example, by
 #' adding or removing fitted models.
 #'
@@ -6,15 +8,15 @@
 #' @param object An object of class \code{\link{bayesmanecfit}}, as returned
 #' by \code{\link{bnec}}.
 #' @param drop A \code{\link[base]{character}} vector containing the names of
-#' model types you which to drop for the modified fit.
+#' model types you which to exclude for the modified fit.
 #' @param add A \code{\link[base]{character}} vector containing the names of
-#' model types to add to the modified fit.
+#' model types you which to include to the modified fit.
 #' @param priors An object of class \code{\link[brms]{brmsprior}} which
 #' specifies user-desired prior distributions of model parameters.
 #' If missing, \code{\link{amend}} will figure out a baseline prior for each
 #' parameter. It can also be specified as a named \code{\link[base]{list}}
 #' where each name needs to correspond to the same string as \code{model}. See
-#' details.
+#' Details.
 #'
 #' @return All successfully fitted \code{\link{bayesmanecfit}} model fits.
 #'
@@ -29,26 +31,41 @@ amend <- function(object, drop, add, loo_controls, x_range = NA,
   UseMethod("amend")
 }
 
+#' amend.bayesmanecfit
+#'
 #' Modifies an existing \code{\link{bayesmanecfit}} object, for example, by
 #' adding or removing fitted models.
 #'
 #' @inheritParams amend
 #'
 #' @inherit amend return examples
+#' 
+#' @importFrom chk chk_character chk_numeric
 #'
 #' @noRd
 #'
 #' @export
-amend.default <- function(object, drop, add, loo_controls, x_range = NA,
-                          precision = 1000, sig_val = 0.01, priors) {
+amend.bayesmanecfit <- function(object, drop, add, loo_controls, x_range = NA,
+                                precision = 1000, sig_val = 0.01, priors) {
   general_error <- paste(
     "Nothing to amend, please specify a proper model to either add or drop, or",
     "changes to loo_controls;\n Returning original model set."
   )
+  
   if (missing(drop) & missing(add) & missing(loo_controls)) {
     message(general_error)
     return(object)
   }
+  
+  if (!missing(drop)) {chk_character(drop)}
+  if (!missing(add)) {chk_character(add)}
+  if (!is.na(x_range[1])) {chk_numeric(x_range)}
+  chk_numeric(precision)
+  chk_numeric(sig_val)
+  if(!inherits(object, "bayesmanecfit")){ 
+    stop("object is not of class bayesmanecfit")
+  }
+  
   old_method <- attributes(object$mod_stats$wi)$method
   if (!missing(loo_controls)) {
     fam_tag <- object$mod_fits[[1]]$fit$family$family
@@ -144,22 +161,5 @@ amend.default <- function(object, drop, add, loo_controls, x_range = NA,
                            loo_controls = loo_controls, model = names(mod_fits))
     allot_class(mod_fits, c("bayesnecfit", "bnecfit"))
   }
-}
-
-#' amend.bayesmanecfit
-#'
-#' Modifies an existing \code{\link{bayesmanecfit}} object, for example, by
-#' adding or removing fitted models.
-#'
-#' @inheritParams amend
-#'
-#' @inherit amend return examples
-#'
-#' @noRd
-#'
-#' @export
-amend.bayesmanecfit <- function(object, drop, add, loo_controls, x_range = NA,
-                                precision = 1000, sig_val = 0.01, priors) {
-  amend.default(object, drop, add, loo_controls, x_range = x_range,
-                precision = precision, sig_val = sig_val, priors)
+  
 }

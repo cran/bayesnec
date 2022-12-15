@@ -24,10 +24,11 @@
 #' nec(manec_example)
 #'
 #' @export
-nec <- function(object, posterior = FALSE, xform = NA,
+nec <- function(object, posterior = FALSE, xform = identity,
                 prob_vals = c(0.5, 0.025, 0.975)) {
   UseMethod("nec")
 }
+
 
 #' @inheritParams nec
 #'
@@ -36,15 +37,19 @@ nec <- function(object, posterior = FALSE, xform = NA,
 #'
 #' @inherit nec seealso return examples
 #' 
-#' @importFrom stats quantile predict
+#' @importFrom stats quantile
+#' @importFrom chk chk_logical
 #'
 #' @noRd
 #'
 #' @export
-nec.default <- function(object, posterior = FALSE, xform = NA,
-                        prob_vals = c(0.5, 0.025, 0.975)) {
-  if (length(prob_vals) < 3 | prob_vals[1] < prob_vals[1] |
-        prob_vals[1] > prob_vals[3] | prob_vals[2] > prob_vals[3]) {
+nec.bayesnecfit <- function(object, posterior = FALSE, xform = identity,
+                            prob_vals = c(0.5, 0.025, 0.975)) {
+  chk_logical(posterior)
+  if(!inherits(xform, "function")){ 
+    stop("xform must be a function.")} 
+  if (length(prob_vals) < 3 | prob_vals[1] < prob_vals[2] |
+      prob_vals[1] > prob_vals[3] | prob_vals[2] > prob_vals[3]) {
     stop("prob_vals must include central, lower and upper quantiles,",
          " in that order.")
   }
@@ -61,27 +66,14 @@ nec.default <- function(object, posterior = FALSE, xform = NA,
     nec_out <- xform(nec_out)
   }
   nec_estimate <- quantile(unlist(nec_out), probs = prob_vals)
+  names(nec_estimate) <- clean_names(nec_estimate)
+  attr(nec_estimate, "toxicity_estimate") <- "nec"
+  attr(nec_out, "toxicity_estimate") <-  "nec"
   if (!posterior) {
     nec_estimate
   } else {
     nec_out
   }
-}
-
-#' @inheritParams nec
-#'
-#' @param object An object of class \code{\link{bayesnecfit}} returned by
-#' \code{\link{bnec}}.
-#'
-#' @inherit nec seealso return examples
-#'
-#' @noRd
-#'
-#' @export
-nec.bayesnecfit <- function(object, posterior = FALSE, xform = NA,
-                            prob_vals = c(0.5, 0.025, 0.975)) {
-  nec.default(object, posterior = posterior, xform = xform,
-              prob_vals = prob_vals)
 }
 
 #' @inheritParams nec
@@ -92,12 +84,21 @@ nec.bayesnecfit <- function(object, posterior = FALSE, xform = NA,
 #' @inherit nec seealso return examples
 #' 
 #' @importFrom stats quantile
+#' @importFrom chk chk_logical
 #'
 #' @noRd
 #'
 #' @export
-nec.bayesmanecfit <- function(object, posterior = FALSE, xform = NA,
+nec.bayesmanecfit <- function(object, posterior = FALSE, xform = identity,
                               prob_vals = c(0.5, 0.025, 0.975)) {
+  chk_logical(posterior)
+  if(!inherits(xform, "function")){ 
+    stop("xform must be a function.")} 
+  if (length(prob_vals) < 3 | prob_vals[1] < prob_vals[2] |
+      prob_vals[1] > prob_vals[3] | prob_vals[2] > prob_vals[3]) {
+    stop("prob_vals must include central, lower and upper quantiles,",
+         " in that order.")
+  }  
   if (max(grepl("ecx", names(object$mod_fits))) == 1) {
     message("bayesmanecfit contains ecx model types and therefore nec",
             " estimate includes nsec values.")
@@ -107,6 +108,9 @@ nec.bayesmanecfit <- function(object, posterior = FALSE, xform = NA,
     nec_out <- xform(nec_out)
   }
   nec_estimate <- quantile(unlist(nec_out), probs = prob_vals)
+  names(nec_estimate) <- clean_names(nec_estimate)
+  attr(nec_estimate, "toxicity_estimate") <- "nec"
+  attr(nec_out, "toxicity_estimate") <-  "nec"
   if (!posterior) {
     nec_estimate
   } else {

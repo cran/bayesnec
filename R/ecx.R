@@ -1,3 +1,5 @@
+#' Extracts the predicted ECx value
+#' 
 #' Extracts the predicted ECx value as desired from an object of class
 #' \code{\link{bayesnecfit}} or \code{\link{bayesnecfit}}.
 #'
@@ -7,7 +9,7 @@
 #' between 1 and 99 (for type = "relative" and "absolute"), defaults to 10.
 #' @param type A \code{\link[base]{character}} vector, taking values of
 #' "relative", "absolute" (the default) or "direct". See Details.
-#' @param precision The number of unique x values over which to find ECx -
+#' @param precision The number of unique x values over which to find ECx --
 #' large values will make the ECx estimate more precise.
 #' @param posterior A \code{\link[base]{logical}} value indicating if the full
 #' posterior sample of calculated ECx values should be returned instead of
@@ -25,14 +27,29 @@
 #' from the maximum predicted value of the response (top) to the minimum
 #' predicted value of the response. Type "absolute" (the default) is
 #' calculated as the percentage decrease from the maximum value of the
-#' response (top) to 0 (or bot for a 4 parameter model fit). Type "direct"
+#' response (top) to 0 (or 'bot' for a four-parameter model fit). Type "direct"
 #' provides a direct estimate of the x value for a given y.
 #' Note that for the current version, ECx for an "nechorme" (NEC Hormesis)
 #' model is estimated at a percent decline from the control.
+#' 
 #' For \code{hormesis_def}, if "max", then ECx values are calculated as a
 #' decline from the maximum estimates (i.e. the peak at NEC);
 #' if "control", then ECx values are calculated relative to the control, which
 #' is assumed to be the lowest observed concentration.
+#' 
+#' Calls to functions \code{\link{ecx}} and \code{\link{nsec}} and
+#' \code{\link{compare_fitted}} do not require the same level of flexibility
+#' in the context of allowing argument \code{newdata}
+#' (from a \code{\link[brms]{posterior_predict}} perspective) to
+#' be supplied manually, as this is and should be handled within the function
+#' itself. The argument \code{precision} controls how precisely the
+#' \code{\link{ecx}} or \code{\link{nsec}} value is estimated, with 
+#' argument \code{x_range} allowing estimation beyond the existing range of
+#' the observed data (otherwise the default range) which can be useful in a
+#' small number of cases. There is also no reasonable case where estimating
+#' these from the raw data would be of value, because both functions would
+#' simply return one of the treatment concentrations, making NOEC a better
+#' metric in that case.
 #'
 #' @seealso \code{\link{bnec}}
 #'
@@ -52,31 +69,51 @@
 ecx <- function(object, ecx_val = 10, precision = 1000,
                 posterior = FALSE, type = "absolute",
                 hormesis_def = "control", x_range = NA,
-                xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
+                xform = identity, prob_vals = c(0.5, 0.025, 0.975)) {
   UseMethod("ecx")
 }
 
 #' @inheritParams ecx
 #'
-#' @param object An object of class \code{\link{bayesnecfit}} returned by
-#' \code{\link{bnec}}.
-#'
 #' @inherit ecx details return seealso examples
 #'
-#' @importFrom stats quantile predict
+#' @param object An object of class \code{\link{bayesnecfit}} returned by
+#' \code{\link{bnec}}.
+#' 
+#' @importFrom stats quantile
+#' @importFrom brms posterior_epred
+#' @importFrom chk chk_logical chk_numeric
 #'
 #' @noRd
 #'
 #' @export
-ecx.default <- function(object, ecx_val = 10, precision = 1000,
-                        posterior = FALSE, type = "absolute",
-                        hormesis_def = "control", x_range = NA,
-                        xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
-  if (length(prob_vals) < 3 || prob_vals[1] < prob_vals[1] ||
-        prob_vals[1] > prob_vals[3] || prob_vals[2] > prob_vals[3]) {
+ecx.bayesnecfit <- function(object, ecx_val = 10, precision = 1000,
+                            posterior = FALSE, type = "absolute",
+                            hormesis_def = "control", x_range = NA,
+                            xform = identity,
+                            prob_vals = c(0.5, 0.025, 0.975)) {
+  chk_numeric(ecx_val)
+  if (length(ecx_val)>1) {
+    stop("You may only pass one ecx_val")  
+  }
+  chk_numeric(precision)  
+  chk_logical(posterior)
+  if ((type %in% c("relative", "absolute", "direct")) == FALSE) {
+    stop("type must be one of 'relative', 'absolute' (the default) or 'direct'. 
+         Please see ?ecx for more details.")
+  }
+  if ((hormesis_def %in% c("max", "control")) == FALSE) {
+    stop("type must be one of 'max' or 'control' (the default). 
+         Please see ?ecx for more details.")
+  }
+  if (!inherits(xform, "function")) {
+    stop("xform must be a function.")
+  }
+  if (length(prob_vals) < 3 || prob_vals[1] < prob_vals[2] ||
+      prob_vals[1] > prob_vals[3] || prob_vals[2] > prob_vals[3]) {
     stop("prob_vals must include central, lower and upper quantiles,",
          " in that order")
-    }
+  }
   if (type != "direct") {
     if (ecx_val < 1 || ecx_val > 99) {
       stop("Supplied ecx_val is not in the required range. ",
@@ -93,14 +130,17 @@ ecx.default <- function(object, ecx_val = 10, precision = 1000,
   } else {
     m4param <- 0
   }
-  if (object$fit$family$family == "gaussian" && type == "absolute" &
-        m4param == 0) {
+  if (object$fit$family$family == "gaussian" && type == "absolute" &&
+      m4param == 0) {
     stop("Absolute ECx values are not valid for a gaussian ",
          "response variable unless a model with a bot parameter is fit")
   }
-  pred_vals <- predict(object, precision = precision, x_range = x_range)
-  p_samples <- pred_vals$posterior
-  x_vec <- pred_vals$data$x
+  newdata_list <- newdata_eval(
+    object, precision = precision, x_range = x_range
+  )
+  p_samples <- posterior_epred(object, newdata = newdata_list$newdata,
+                               re_formula = NA)
+  x_vec <- newdata_list$x_vec
   if (grepl("horme", object$model)) {
     n <- seq_len(nrow(p_samples))
     p_samples <- do_wrapper(n, modify_posterior, object, x_vec,
@@ -118,11 +158,15 @@ ecx.default <- function(object, ecx_val = 10, precision = 1000,
   if (inherits(xform, "function")) {
     ecx_out <- xform(ecx_out)
   }
-  label <- paste("ec", ecx_val, sep = "_")
+
   ecx_estimate <- quantile(unlist(ecx_out), probs = prob_vals)
-  names(ecx_estimate) <- paste(label, clean_names(ecx_estimate), sep = "_")
+  names(ecx_estimate) <- clean_names(ecx_estimate)
   attr(ecx_estimate, "precision") <- precision
   attr(ecx_out, "precision") <- precision
+  attr(ecx_estimate, "ecx_val") <- ecx_val
+  attr(ecx_out, "ecx_val") <- ecx_val
+  attr(ecx_estimate, "toxicity_estimate") <- "ecx"
+  attr(ecx_out, "toxicity_estimate") <-  "ecx"
   if (signif(ecx_estimate[1], 3) == signif(ecx_estimate[3], 3)) {
     message("The estimated mean is identical or nearly identical to your",
             " upper credible interval for the ", object$model, " model.",
@@ -147,31 +191,13 @@ ecx.default <- function(object, ecx_val = 10, precision = 1000,
 
 #' @inheritParams ecx
 #'
-#' @inherit ecx details return seealso examples
-#'
-#' @param object An object of class \code{\link{bayesnecfit}} returned by
-#' \code{\link{bnec}}.
-#'
-#' @noRd
-#'
-#' @export
-ecx.bayesnecfit <- function(object, ecx_val = 10, precision = 1000,
-                            posterior = FALSE, type = "absolute",
-                            hormesis_def = "control", x_range = NA,
-                            xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
-  ecx.default(object = object, ecx_val = ecx_val, precision = precision,
-              posterior = posterior, type = type, hormesis_def = hormesis_def,
-              x_range = x_range, xform = xform, prob_vals = prob_vals)
-}
-
-#' @inheritParams ecx
-#'
 #' @param object An object of class \code{\link{bayesmanecfit}} returned by
 #' \code{\link{bnec}}.
 #'
 #' @inherit ecx details return seealso examples
 #'
 #' @importFrom stats quantile
+#' @importFrom chk chk_logical chk_numeric
 #'
 #' @noRd
 #'
@@ -179,7 +205,29 @@ ecx.bayesnecfit <- function(object, ecx_val = 10, precision = 1000,
 ecx.bayesmanecfit <- function(object, ecx_val = 10, precision = 1000,
                               posterior = FALSE, type = "absolute",
                               hormesis_def = "control", x_range = NA,
-                              xform = NA, prob_vals = c(0.5, 0.025, 0.975)) {
+                              xform = identity,
+                              prob_vals = c(0.5, 0.025, 0.975)) {
+  chk_numeric(ecx_val)
+  chk_numeric(precision)  
+  chk_logical(posterior)
+  if (length(ecx_val)>1) {
+    stop("You may only pass one ecx_val")  
+  }
+  if ((type %in% c("relative", "absolute", "direct")) == FALSE) {
+    stop("type must be one of 'relative', 'absolute' (the default) or 'direct'. 
+         Please see ?ecx for more details.")
+  }
+  if ((hormesis_def %in% c("max", "control")) == FALSE) {
+    stop("type must be one of 'max' or 'control' (the default). 
+         Please see ?ecx for more details.")
+  }
+  if (!inherits(xform, "function")) { 
+    stop("xform must be a function.")}   
+  if (length(prob_vals) < 3 || prob_vals[1] < prob_vals[2] ||
+      prob_vals[1] > prob_vals[3] || prob_vals[2] > prob_vals[3]) {
+    stop("prob_vals must include central, lower and upper quantiles,",
+         " in that order")
+  }
   sample_ecx <- function(x, object, ecx_val, precision,
                          posterior, type, hormesis_def,
                          x_range, xform, prob_vals, sample_size) {
@@ -197,12 +245,14 @@ ecx.bayesmanecfit <- function(object, ecx_val = 10, precision = 1000,
                     posterior = TRUE, type, hormesis_def, x_range,
                     xform, prob_vals, sample_size)
   ecx_out <- unlist(ecx_out)
-  label <- paste("ec", ecx_val, sep = "_")
   ecx_estimate <- quantile(ecx_out, probs = prob_vals)
-  names(ecx_estimate) <- c(label, paste(label, "lw", sep = "_"),
-                           paste(label, "up", sep = "_"))
+  names(ecx_estimate) <- clean_names(ecx_estimate)
   attr(ecx_estimate, "precision") <- precision
   attr(ecx_out, "precision") <- precision
+  attr(ecx_estimate, "ecx_val") <- ecx_val
+  attr(ecx_out, "ecx_val") <- ecx_val
+  attr(ecx_estimate, "toxicity_estimate") <- "ecx"
+  attr(ecx_out, "toxicity_estimate") <-  "ecx"
   if (!posterior) {
     ecx_estimate
   } else {

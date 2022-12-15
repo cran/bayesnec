@@ -14,7 +14,7 @@ average_endpoints(
   sig_val = 0.01,
   precision = 1000,
   x_range = NA,
-  xform = NA,
+  xform = identity,
   prob_vals = c(0.5, 0.025, 0.975)
 )
 }
@@ -44,7 +44,7 @@ significance of the predicted posterior values.
 against the lowest observed concentration (assumed to be the control), to
 estimate NEC as an interpolated NOEC value from smooth ECx curves.}
 
-\item{precision}{The number of unique x values over which to find ECx -
+\item{precision}{The number of unique x values over which to find ECx --
 large values will make the ECx estimate more precise.}
 
 \item{x_range}{A range of x values over which to consider extracting ECx.}
@@ -71,7 +71,7 @@ The geometric mean of values are simply the mean calculated on a
 log scale and back transformed through \code{\link[base]{exp}}, although we
 have added the capacity to accommodate zero values. Note that the function
 assumes that \code{x} has been modelled on the natural scale. Often C-R
-models are more stable on a log transformed or sqrt scaling. If the input
+models are more stable on a log-transformed or sqrt scaling. If the input
 \code{\link{bayesnecfit}} or \code{\link{bayesmanecfit}} model fits are
 already based on a re-scaling of the x (concentration) axis, it is important
 to pass an appropriate xform argument to ensure these are back transformed
@@ -82,7 +82,7 @@ before the the geometric mean calculation is applied.
 library(brms)
 library(bayesnec)
 data(manec_example)
-data(nec4param)
+nec4param <- pull_out(manec_example, model = "nec4param")
 ecx4param <- pull_out(manec_example, model = "ecx4param")
 average_endpoints(list("nec" = ecx4param, "ecx" = nec4param), ecx_val = 50)
 }

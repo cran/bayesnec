@@ -14,7 +14,6 @@ linear_rescale <- function(x, r_out) {
 #' \code{\link[brms]{brmsfamily}}.
 #' @return A \code{\link[base]{character}} vector containing the brms
 #' custom family or NA.
-#' @importFrom brms fixef
 #' @noRd
 check_custom_name <- function(family) {
   custom_name <- "none"
@@ -296,6 +295,7 @@ contains_negative <- function(x) {
   any(x < 0, na.rm = TRUE)
 }
 
+#' @importFrom stats binomial
 #' @noRd
 response_link_scale <- function(response, family) {
   link_tag <- family$link
@@ -339,7 +339,6 @@ rounded <- function(value, precision = 1) {
 }
 
 #' @noRd
-#' @importFrom dplyr %>%
 return_x_range <- function(x) {
   return_x <- function(object) {
     if (is_bayesmanecfit(object)) {
@@ -350,8 +349,8 @@ return_x_range <- function(x) {
       stop("Not all objects in x are of class bayesnecfit or bayesmanecfit.")
     }
   }
-  lapply(x, return_x) %>%
-    unlist %>%
+  lapply(x, return_x) |>
+    unlist() |>
     range(na.rm = TRUE)
 }
 
@@ -530,4 +529,123 @@ find_transformations <- function(data) {
   bnec_pop_vars <- attr(data, "bnec_pop")
   # what bout when no variable?
   unname(bnec_pop_vars[!bnec_pop_vars %in% names(data)])
+}
+
+#' @noRd
+cleaned_brms_summary <- function(brmsfit) {
+  brmssummary <- summary(brmsfit, robust = TRUE)
+  rownames(brmssummary$fixed) <- gsub(
+    "\\_Intercept$", "", rownames(brmssummary$fixed)
+  )
+  brmssummary
+}
+
+#' @noRd
+identical_value <- function(x, y) {
+  if (identical(x, y)) {
+    x
+  } else {
+    FALSE
+  }
+}
+
+#' @noRd
+#' @importFrom stats model.frame
+check_data_equality <- function(mod_fits) {
+  data_are_equal <- lapply(mod_fits, function(x) as.matrix(x$fit$data)) |>
+    Reduce(f = identical_value) |>
+    is.matrix()
+  if (!data_are_equal) {
+    stop("Dataset values differ across fits. Datasets need to be identical ",
+         "across the multiple fits.")
+  }
+  # this second check is needed for cases where a function is passed onto
+  # one of the model variables via the formula, e.g. crf(log(x), ...)
+  cols_are_equal <- lapply(mod_fits, function(x) {
+    model.frame(x$bayesnecformula, x$fit$data) |>
+      attr("terms") |>
+      attr("factors") |>
+      rownames() |>
+      sort()
+  }) |>
+    Reduce(f = identical_value) |>
+    is.character()
+  if (!cols_are_equal) {
+    stop("Dataset column names differ across fits. Datasets need to be ",
+         "identical across the multiple fits.")
+  }
+}
+
+#' @noRd
+#' @importFrom chk chk_numeric
+check_args_newdata <- function(precision, x_range) {
+  chk_numeric(precision)
+  if (!is.na(x_range[1])) {
+    chk_numeric(x_range)
+  }  
+}
+
+#' @noRd
+newdata_eval <- function(object, precision, x_range) {
+  # Just need one model to extract and generate data
+  # since all models are considered to have the exact same raw data.
+  if (inherits(object, "bayesmanecfit")) {
+    model_set <- names(object$mod_fits)
+    object <- suppressMessages(pull_out(object, model = model_set[1]))
+  }
+  data <- model.frame(object$bayesnecformula, object$fit$data)
+  bnec_pop_vars <- attr(data, "bnec_pop")
+  newdata <- bnec_newdata(object, precision = precision, x_range = x_range)
+  x_vec <- newdata[[bnec_pop_vars[["x_var"]]]]
+  list(newdata = newdata, x_vec = x_vec)
+}
+
+#' @noRd
+newdata_eval_fitted <- function(object, precision, x_range, make_newdata,
+                                fct_eval, ...) {
+  # Just need one model to extract and generate data
+  # since all models are considered to have the exact same raw data.
+  if (inherits(object, "bayesmanecfit")) {
+    model_set <- names(object$mod_fits)
+    object <- suppressMessages(pull_out(object, model = model_set[1]))
+  }
+  data <- model.frame(object$bayesnecformula, object$fit$data)
+  bnec_pop_vars <- attr(data, "bnec_pop")
+  dot_list <- list(...)
+  if ("newdata" %in% names(dot_list) && make_newdata) {
+    stop("You cannot provide a \"newdata\" argument and set",
+         " make_newdata = TRUE at the same time. Please use one or another.",
+         " See details in help file ?", fct_eval)
+  }
+  if (!("newdata" %in% names(dot_list))) {
+    if (make_newdata) {
+      newdata <- bnec_newdata(object, precision = precision, x_range = x_range)
+      x_vec <- newdata[[bnec_pop_vars[["x_var"]]]]
+      if ("re_formula" %in% names(dot_list)) {
+        message("Argument \"re_formula\" ignored and set to NA because",
+                " function bnec_newdata cannot guess random effect structure.")
+      }
+      re_formula <- NA
+    } else {
+      newdata <- NULL
+      x_vec <- pull_brmsfit(object)$data[[bnec_pop_vars[["x_var"]]]]
+      precision <- "from raw data"
+      if (!("re_formula" %in% names(dot_list))) {
+        re_formula <- NULL
+      } else {
+        re_formula <- dot_list$re_formula
+      }
+    }
+  } else {
+    newdata <- dot_list$newdata
+    x_vec <- newdata[[bnec_pop_vars[["x_var"]]]]
+    precision <- "from user-specified newdata"
+    if (!("re_formula" %in% names(dot_list))) {
+      re_formula <- NULL
+    } else {
+      re_formula <- dot_list$re_formula
+    }
+  }
+  list(newdata = newdata, x_vec = x_vec, precision = precision,
+       re_formula = re_formula)
 }

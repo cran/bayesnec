@@ -12,7 +12,7 @@ nsec(
   posterior = FALSE,
   x_range = NA,
   hormesis_def = "control",
-  xform = NA,
+  xform = identity,
   prob_vals = c(0.5, 0.025, 0.975)
 )
 }
@@ -54,9 +54,23 @@ Extracts the predicted NSEC value as desired from an object of class
 }
 \details{
 For \code{hormesis_def}, if "max", then NSEC values are calculated
-as a decline from the maximum estimates (i.e. the peak at nec);
+as a decline from the maximum estimates (i.e. the peak at NEC);
 if "control", then ECx values are calculated relative to the control, which
 is assumed to be the lowest observed concentration.
+
+Calls to functions \code{\link{ecx}} and \code{\link{nsec}} and
+\code{\link{compare_fitted}} do not require the same level of flexibility
+in the context of allowing argument \code{newdata}
+(from a \code{\link[brms]{posterior_predict}} perspective) to
+be supplied manually, as this is and should be handled within the function
+itself. The argument \code{precision} controls how precisely the
+\code{\link{ecx}} or \code{\link{nsec}} value is estimated, with
+argument \code{x_range} allowing estimation beyond the existing range of
+the observed data (otherwise the default range) which can be useful in a
+small number of cases. There is also no reasonable case where estimating
+these from the raw data would be of value, because both functions would
+simply return one of the treatment concentrations, making NOEC a better
+metric in that case.
 }
 \examples{
 \donttest{

@@ -59,15 +59,14 @@ test_that("ecx returns expected object types and arguments pass correctly", {
 test_that("works for bayesnecfit", {
   ecx1 <- ecx(ecx4param)
   expect_equal(length(ecx1), 3)
-  expect_equal(names(ecx1), c("ec_10_Q50", "ec_10_Q2.5", "ec_10_Q97.5"))
+  expect_equal(names(ecx1), c("Q50", "Q2.5", "Q97.5"))
 })
 
 test_that("works for bayesmanecfit", {
   ecx1 <- ecx(manec_example)
   expect_equal(length(ecx1), 3)
-  expect_equal(names(ecx1), c("ec_10", "ec_10_lw", "ec_10_up"))
+  expect_equal(names(ecx1), c("Q50", "Q2.5", "Q97.5"))
 })
-
 
 test_that("xform passes correctly", {
   ecx1 <- ecx(ecx4param)
@@ -81,11 +80,11 @@ test_that("posterior passes correctly", {
 })
 
 test_that("prob_vals passes correctly", {
-  ecx4 <- ecx(ecx4param, prob_vals = c(0.3, 0.5, 0.7))
-  expect_equal(names(ecx4), c("ec_10_Q30",   "ec_10_Q50",  "ec_10_Q70"))
+  ecx4 <- ecx(ecx4param, prob_vals = c(0.5, 0.3, 0.7))
+  expect_equal(names(ecx4), c("Q50", "Q30", "Q70"))
 })
 
 test_that("ecx_val passes correctly", {
-  ecx4 <- ecx(ecx4param, prob_vals = c(0.3, 0.5, 0.7), ecx_val = 20)
-  expect_equal(names(ecx4), c("ec_20_Q30", "ec_20_Q50", "ec_20_Q70"))
+  ecx4 <- ecx(ecx4param, prob_vals = c(0.5, 0.3, 0.7), ecx_val = 20)
+  expect_equal(names(ecx4), c("Q50", "Q30", "Q70"))
 })
