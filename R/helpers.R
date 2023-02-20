@@ -190,16 +190,23 @@ are_chains_correct <- function(brms_fit, chains) {
 }
 
 #' @noRd
-get_init_ranges <- function(y, x, fct, .args) {
+get_init_predictions <- function(y, x, fct, .args) {
   y <- y[match(.args, names(y))]
   y <- lapply(y, as.numeric)
   y[["x"]] <- x
-  range(do.call("fct", y))
+  do.call("fct", y)
 }
 
 #' @noRd
-check_limits <- function(x, limits) {
-  min(x) >= min(limits) & max(x) <= max(limits)
+check_init_predictions <- function(x, limits) {
+    min(x) > min(limits) & 
+    max(x) < max(limits) &
+    !any(is.na(x)) &
+    !any(is.infinite(x)) & 
+    !any(is.nan(x)) & 
+    diff(range(round(x, 3)))!=0 &
+    length(unique(signif(x, 1)))>2 &
+    x[1]>x[length(x)]
 }
 
 #' @noRd
