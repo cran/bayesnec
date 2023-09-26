@@ -94,7 +94,7 @@ plot.bayesnecfit <- function(x, ..., CI = TRUE, add_nec = TRUE,
   mod_dat <- model.frame(x$bayesnecformula, data = x$fit$data)
   y_var <- attr(mod_dat, "bnec_pop")[["y_var"]]
   x_var <- attr(mod_dat, "bnec_pop")[["x_var"]]
-  if (family == "binomial" | custom_name == "beta_binomial2") {
+  if (family == "binomial" | family == "beta_binomial") {
     trials_var <- attr(mod_dat, "bnec_pop")[["trials_var"]]
     y_dat <- x$fit$data[[y_var]] / x$fit$data[[trials_var]]
   } else {
@@ -121,7 +121,7 @@ plot.bayesnecfit <- function(x, ..., CI = TRUE, add_nec = TRUE,
   }
       
   ec10 <- xform(ec10)  
-  nec <- xform(x$nec)
+  nec <- xform(x$ne)
 
   if (jitter_x) {
     x_dat <- jitter(x_dat)
@@ -137,13 +137,18 @@ plot.bayesnecfit <- function(x, ..., CI = TRUE, add_nec = TRUE,
   plot(x_dat, y_dat, ylab = ylab, xlab = xlab,
        pch = 16, xaxt = "n", cex = 1.5,
        col = adjustcolor(1, alpha.f = 0.25), ...)
+  nec_tag <- summary(x, ecx = FALSE) |>
+    (`[[`)("nec_vals") |>
+    rownames() |>
+    suppressWarnings() |>
+    suppressMessages()
   if (!inherits(lxform, "function")) {
     if (length(xticks) == 1) {
       axis(side = 1)
     } else {
       axis(side = 1, at = signif(xticks, 2))
     }
-    legend_nec <- paste("NEC: ", signif(nec["Estimate"], 2),
+    legend_nec <- paste(nec_tag, ": ", signif(nec["Estimate"], 2),
                         " (", signif(nec["Q2.5"], 2), "-",
                         signif(nec["Q97.5"], 2), ")", sep = "")
     legend_ec10 <- paste("EC10: ", signif(ec10[1], 2),
@@ -152,7 +157,7 @@ plot.bayesnecfit <- function(x, ..., CI = TRUE, add_nec = TRUE,
   } else {
     x_labs <- signif(lxform(x_ticks), 2)
     axis(side = 1, at = x_ticks, labels = x_labs)
-    legend_nec <- paste("NEC: ", signif(lxform(nec["Estimate"]), 2),
+    legend_nec <- paste(nec_tag, ": ", signif(lxform(nec["Estimate"]), 2),
                         " (", signif(lxform(nec["Q2.5"]), 2), "-",
                         signif(lxform(nec["Q97.5"]), 2), ")", sep = "")
     legend_ec10 <- paste("EC10: ", signif(lxform(ec10[1]), 2),
@@ -228,10 +233,9 @@ plot.bayesmanecfit <- function(x, ..., CI = TRUE, add_nec = TRUE,
     par(mfrow = c(ceiling(length(mod_fits) / 2), 2),
         mar = c(1.5, 1.5, 1.5, 1.5), oma = c(3, 3, 0, 0))
     for (m in seq_along(mod_fits)) {
-      mod_fits[[m]] <- suppressMessages(suppressWarnings(expand_and_assign_nec(
-        x = mod_fits[[m]], formula = mod_fits[[m]]$bayesnecformula,
-        model = names(mod_fits)[m]
-      )))
+      mod_fits[[m]] <- pull_out(x, model = names(mod_fits)[m]) |>
+        suppressWarnings() |>
+        suppressMessages()
       plot(x = mod_fits[[m]], CI = CI, add_nec = add_nec,
            position_legend = position_legend, add_ec10 = add_ec10,
            xform = xform, lxform = lxform,
@@ -250,7 +254,7 @@ plot.bayesmanecfit <- function(x, ..., CI = TRUE, add_nec = TRUE,
     x_var <- attr(bdat, "bnec_pop")[["x_var"]]
     family <- universal$fit$family$family
     custom_name <- check_custom_name(universal$fit$family)
-    if (family == "binomial" | custom_name == "beta_binomial2") {
+    if (family == "binomial" | family == "beta_binomial") {
       trials_var <- attr(bdat, "bnec_pop")[["trials_var"]]
       y_dat <- mod_dat[[y_var]] / mod_dat[[trials_var]]
     } else {
@@ -269,7 +273,7 @@ plot.bayesmanecfit <- function(x, ..., CI = TRUE, add_nec = TRUE,
       x_dat <- xform(x_dat)
       x_vec <- xform(x_vec)
     }
-    nec <- xform(x$w_nec)
+    nec <- xform(x$w_ne)
     ec10 <- xform(ec10)
     if (jitter_x) {
       x_dat <- jitter(x_dat)
@@ -285,13 +289,18 @@ plot.bayesmanecfit <- function(x, ..., CI = TRUE, add_nec = TRUE,
     plot(x_dat, y_dat, ylab = ylab, xlab = xlab,
          pch = 16, xaxt = "n", cex = 1.5,
          col = adjustcolor(1, alpha.f = 0.25), ...)
+    nec_tag <- summary(x, ecx = FALSE) |>
+      (`[[`)("nec_vals") |>
+      rownames() |>
+      suppressWarnings() |>
+      suppressMessages()
     if (!inherits(lxform, "function")) {
       if (length(xticks) == 1) {
         axis(side = 1)
       } else {
         axis(side = 1, at = signif(xticks, 2))
       }
-      legend_nec <- paste("NEC: ", signif(nec["Estimate"], 2),
+      legend_nec <- paste(nec_tag, ": ", signif(nec["Estimate"], 2),
                           " (", signif(nec["Q2.5"], 2), "-",
                           signif(nec["Q97.5"], 2), ")", sep = "")
       legend_ec10 <- paste("EC10: ", signif(ec10[1], 2),
@@ -300,7 +309,7 @@ plot.bayesmanecfit <- function(x, ..., CI = TRUE, add_nec = TRUE,
     } else {
       x_labs <- signif(lxform(x_ticks), 2)
       axis(side = 1, at = x_ticks, labels = x_labs)
-      legend_nec <- paste("NEC: ", signif(lxform(nec["Estimate"]), 2),
+      legend_nec <- paste(nec_tag, ": ", signif(lxform(nec["Estimate"]), 2),
                           " (", signif(lxform(nec["Q2.5"]), 2), "-",
                           signif(lxform(nec["Q97.5"]), 2), ")", sep = "")
       legend_ec10 <- paste("EC10: ", signif(lxform(ec10[1]), 2),

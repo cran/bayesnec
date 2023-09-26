@@ -1,6 +1,3 @@
-library(bayesnec)
-library(brms)
-
 r_pois <- rpois(1000, lambda = 10)
 r_norm <- rnorm(1000)
 r_gamm <- rgamma(1000, 2)

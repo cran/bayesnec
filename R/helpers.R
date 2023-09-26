@@ -82,7 +82,7 @@ extract_waic_estimate <- function(x) {
 
 #' @noRd
 w_nec_calc <- function(index, mod_fits, sample_size, mod_stats) {
-  sample(mod_fits[[index]]$nec_posterior,
+  sample(mod_fits[[index]]$ne_posterior,
          as.integer(round(sample_size * mod_stats[index, "wi"])))
 }
 
@@ -271,9 +271,21 @@ clean_mod_weights <- function(x) {
 }
 
 #' @noRd
-clean_nec_vals <- function(x) {
-  mat <- t(as.matrix(x$w_nec))
-  rownames(mat) <- "NEC"
+clean_nec_vals <- function(x, all_models, ecx_models) {
+  if (is_bayesnecfit(x)) {
+    mat <- t(as.matrix(x$ne))
+  } else if (is_bayesmanecfit(x)) {
+    mat <- t(as.matrix(x$w_ne))
+  } else {
+    stop("Wrong input class.")
+  }
+  neclab <- "NEC"
+  if (all(all_models %in% ecx_models)) {
+    neclab <- "NSEC"
+  } else if (!is.null(ecx_models)) {
+    neclab <- "N(S)EC"
+  }
+  rownames(mat) <- neclab
   mat
 }
 
@@ -313,15 +325,7 @@ response_link_scale <- function(response, family) {
   lr <- linear_rescale
   custom_name <- check_custom_name(family)
   if (link_tag %in% c("logit", "log")) {
-    if (custom_name == "beta_binomial2") {
-      if (contains_zero(response)) {
-        response <- lr(response, r_out = c(min_z_val, max(response)))
-      }
-      if (contains_one(response)) {
-        response <- lr(response, r_out = c(min(response), max_o_val))
-      }
-      response <- binomial(link = link_tag)$linkfun(response)
-    } else if (family$family %in% c("bernoulli", "binomial")) {
+    if (family$family %in% c("bernoulli", "binomial", "beta_binomial")) {
       if (contains_zero(response)) {
         response <- lr(response, r_out = c(min_z_val, max(response)))
       }
@@ -340,8 +344,8 @@ response_link_scale <- function(response, family) {
 }
 
 #' @noRd
-rounded <- function(value, precision = 1) {
-  sprintf(paste0("%.", precision, "f"), round(value, precision))
+rounded <- function(value, resolution = 1) {
+  sprintf(paste0("%.", resolution, "f"), round(value, resolution))
 }
 
 #' @noRd
@@ -363,10 +367,10 @@ return_x_range <- function(x) {
 #' @noRd
 return_nec_post <- function(m, xform) {
   if (is_bayesnecfit(m)) {
-    out <- unname(m$nec_posterior)
+    out <- unname(m$ne_posterior)
   }
   if (is_bayesmanecfit(m)) {
-    out <- unname(m$w_nec_posterior)
+    out <- unname(m$w_ne_posterior)
   }
   if (inherits(xform, "function")) {
     out <- xform(out)
@@ -484,7 +488,7 @@ add_brm_defaults <- function(brm_args, model, family, predictor, response,
     brm_args$prior <- priors
   }
   if (!("init" %in% names(brm_args)) || skip_check) {
-    msg_tag <- ifelse(family$family == "custom", custom_name, family$family)
+    msg_tag <- family$family
     message(paste0("Finding initial values which allow the response to be",
                    " fitted using a ", model, " model and a ", msg_tag,
                    " distribution."))
@@ -536,9 +540,25 @@ has_family_changed <- function(x, data, ...) {
 }
 
 #' @noRd
+clean_aterms <- function(data) {
+  aterms <- c("^trials\\(", "^me\\(", "^mi\\(", "^mo\\(", "^se\\(", "^cs\\(")
+  for (i in seq_along(aterms)) {
+    has_aterm <- grepl(aterms[i], names(data))
+    if (any(has_aterm)) {
+      names(data)[has_aterm] <- names(data)[has_aterm] |>
+        str2lang() |>
+        (`[[`)(2) |>
+        all.vars()
+    }
+  }
+  data
+}
+
+#' @noRd
 find_transformations <- function(data) {
   bnec_pop_vars <- attr(data, "bnec_pop")
-  # what bout when no variable?
+  # remove aterms from data name
+  data <- clean_aterms(data)
   unname(bnec_pop_vars[!bnec_pop_vars %in% names(data)])
 }
 
@@ -589,15 +609,15 @@ check_data_equality <- function(mod_fits) {
 
 #' @noRd
 #' @importFrom chk chk_numeric
-check_args_newdata <- function(precision, x_range) {
-  chk_numeric(precision)
+check_args_newdata <- function(resolution, x_range) {
+  chk_numeric(resolution)
   if (!is.na(x_range[1])) {
     chk_numeric(x_range)
   }  
 }
 
 #' @noRd
-newdata_eval <- function(object, precision, x_range) {
+newdata_eval <- function(object, resolution, x_range) {
   # Just need one model to extract and generate data
   # since all models are considered to have the exact same raw data.
   if (inherits(object, "bayesmanecfit")) {
@@ -606,13 +626,13 @@ newdata_eval <- function(object, precision, x_range) {
   }
   data <- model.frame(object$bayesnecformula, object$fit$data)
   bnec_pop_vars <- attr(data, "bnec_pop")
-  newdata <- bnec_newdata(object, precision = precision, x_range = x_range)
+  newdata <- bnec_newdata(object, resolution = resolution, x_range = x_range)
   x_vec <- newdata[[bnec_pop_vars[["x_var"]]]]
   list(newdata = newdata, x_vec = x_vec)
 }
 
 #' @noRd
-newdata_eval_fitted <- function(object, precision, x_range, make_newdata,
+newdata_eval_fitted <- function(object, resolution, x_range, make_newdata,
                                 fct_eval, ...) {
   # Just need one model to extract and generate data
   # since all models are considered to have the exact same raw data.
@@ -630,7 +650,7 @@ newdata_eval_fitted <- function(object, precision, x_range, make_newdata,
   }
   if (!("newdata" %in% names(dot_list))) {
     if (make_newdata) {
-      newdata <- bnec_newdata(object, precision = precision, x_range = x_range)
+      newdata <- bnec_newdata(object, resolution = resolution, x_range = x_range)
       x_vec <- newdata[[bnec_pop_vars[["x_var"]]]]
       if ("re_formula" %in% names(dot_list)) {
         message("Argument \"re_formula\" ignored and set to NA because",
@@ -640,7 +660,7 @@ newdata_eval_fitted <- function(object, precision, x_range, make_newdata,
     } else {
       newdata <- NULL
       x_vec <- pull_brmsfit(object)$data[[bnec_pop_vars[["x_var"]]]]
-      precision <- "from raw data"
+      resolution <- "from raw data"
       if (!("re_formula" %in% names(dot_list))) {
         re_formula <- NULL
       } else {
@@ -650,13 +670,13 @@ newdata_eval_fitted <- function(object, precision, x_range, make_newdata,
   } else {
     newdata <- dot_list$newdata
     x_vec <- newdata[[bnec_pop_vars[["x_var"]]]]
-    precision <- "from user-specified newdata"
+    resolution <- "from user-specified newdata"
     if (!("re_formula" %in% names(dot_list))) {
       re_formula <- NULL
     } else {
       re_formula <- dot_list$re_formula
     }
   }
-  list(newdata = newdata, x_vec = x_vec, precision = precision,
+  list(newdata = newdata, x_vec = x_vec, resolution = resolution,
        re_formula = re_formula)
 }

@@ -6,12 +6,12 @@
 \usage{
 compare_posterior(
   x,
-  comparison = "nec",
+  comparison = "n(s)ec",
   ecx_val = 10,
   type = "absolute",
   hormesis_def = "control",
   sig_val = 0.01,
-  precision,
+  resolution,
   x_range = NA,
   make_newdata = TRUE,
   ...
@@ -23,7 +23,7 @@ compare_posterior(
 \code{\link{bnec}}.}
 
 \item{comparison}{The posterior predictions to compare, takes values of
-"nec", "nsec", "ecx" or "fitted".}
+"nec", "n(s)ec", "nsec", "ecx" or "fitted".}
 
 \item{ecx_val}{The desired percentage effect value. This must be a value
 between 1 and 99 (for type = "relative" and "absolute"), defaults to 10.}
@@ -35,18 +35,16 @@ between 1 and 99 (for type = "relative" and "absolute"), defaults to 10.}
 of "max" or "control". See Details.}
 
 \item{sig_val}{Probability value to use as the lower quantile to test
-significance of the predicted posterior values.
-against the lowest observed concentration (assumed to be the control), to
-estimate NEC as an interpolated NOEC value from smooth ECx curves.}
+significance of the predicted posterior values.}
 
-\item{precision}{The number of unique x values over which to find ECx --
+\item{resolution}{The number of unique x values over which to find ECx --
 large values will make the ECx estimate more precise.}
 
 \item{x_range}{A range of x values over which to consider extracting ECx.}
 
 \item{make_newdata}{Only used if \code{comparison = "fitted"}. Should the
 user allow the package to create \code{newdata} for predictions?
-If so, arguments \code{precision} and \code{x_range} will be used. Defaults
+If so, arguments \code{resolution} and \code{x_range} will be used. Defaults
 to TRUE. See details.}
 
 \item{...}{Further arguments that control posterior predictions via
@@ -81,7 +79,7 @@ control, which is assumed to be the lowest observed concentration.
 The argument \code{make_newdata} is only used if
 \code{comparison = "fitted"}. It is relevant to those who want the package
 to create a data.frame from which to make predictions. This is done via
-\code{\link{bnec_newdata}} and uses arguments \code{precision} and
+\code{\link{bnec_newdata}} and uses arguments \code{resolution} and
 \code{x_range}. If \code{make_newdata = FALSE} and no additional
 \code{newdata} argument is provided (via \code{...}), then the predictions
 are made for the raw data. Else, to generate predictions for a specific
@@ -96,7 +94,7 @@ library(bayesnec)
 data(manec_example)
 nec4param <- pull_out(manec_example, model = "nec4param")
 ecx4param <- pull_out(manec_example, model = "ecx4param")
-compare_posterior(list("nec" = ecx4param, "ecx" = nec4param), ecx_val = 50)
+compare_posterior(list("n(s)ec" = ecx4param, "ecx" = nec4param), ecx_val = 50)
 }
 
 }

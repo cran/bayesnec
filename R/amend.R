@@ -27,7 +27,7 @@
 #'
 #' @export
 amend <- function(object, drop, add, loo_controls, x_range = NA,
-                  precision = 1000, sig_val = 0.01, priors) {
+                  resolution = 1000, sig_val = 0.01, priors) {
   UseMethod("amend")
 }
 
@@ -46,7 +46,7 @@ amend <- function(object, drop, add, loo_controls, x_range = NA,
 #'
 #' @export
 amend.bayesmanecfit <- function(object, drop, add, loo_controls, x_range = NA,
-                                precision = 1000, sig_val = 0.01, priors) {
+                                resolution = 1000, sig_val = 0.01, priors) {
   general_error <- paste(
     "Nothing to amend, please specify a proper model to either add or drop, or",
     "changes to loo_controls;\n Returning original model set."
@@ -60,7 +60,7 @@ amend.bayesmanecfit <- function(object, drop, add, loo_controls, x_range = NA,
   if (!missing(drop)) {chk_character(drop)}
   if (!missing(add)) {chk_character(add)}
   if (!is.na(x_range[1])) {chk_numeric(x_range)}
-  chk_numeric(precision)
+  chk_numeric(resolution)
   chk_numeric(sig_val)
   if(!inherits(object, "bayesmanecfit")){ 
     stop("object is not of class bayesmanecfit")
@@ -125,7 +125,7 @@ amend.bayesmanecfit <- function(object, drop, add, loo_controls, x_range = NA,
         x <- retrieve_var(bdat, "x_var", error = TRUE)
         y <- retrieve_var(bdat, "y_var", error = TRUE)
         custom_name <- check_custom_name(family)
-        if (family$family == "binomial" || custom_name == "beta_binomial2") {
+        if (family$family == "binomial" || family$family == "beta_binomial") {
           tr <- retrieve_var(bdat, "trials_var", error = TRUE)
           y <- y / tr
         }
@@ -151,13 +151,13 @@ amend.bayesmanecfit <- function(object, drop, add, loo_controls, x_range = NA,
   }
   formulas <- lapply(mod_fits, extract_formula)
   mod_fits <- expand_manec(mod_fits, formula = formulas, x_range = x_range,
-                           precision = precision, sig_val = sig_val,
+                           resolution = resolution, sig_val = sig_val,
                            loo_controls = loo_controls)
   if (length(mod_fits) > 1) {
     allot_class(mod_fits, c("bayesmanecfit", "bnecfit"))
   } else {
     mod_fits <- expand_nec(mod_fits[[1]], formula = formula, x_range = x_range,
-                           precision = precision, sig_val = sig_val,
+                           resolution = resolution, sig_val = sig_val,
                            loo_controls = loo_controls, model = names(mod_fits))
     allot_class(mod_fits, c("bayesnecfit", "bnecfit"))
   }

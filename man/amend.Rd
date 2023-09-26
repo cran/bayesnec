@@ -10,7 +10,7 @@ amend(
   add,
   loo_controls,
   x_range = NA,
-  precision = 1000,
+  resolution = 1000,
   sig_val = 0.01,
   priors
 )
@@ -29,9 +29,7 @@ model types you which to include to the modified fit.}
 ("fitting" and/or "weights"), each being a named \code{\link[base]{list}}
 containing the desired arguments to be passed on to \code{\link[brms]{loo}}
 (via "fitting") or to \code{\link[loo]{loo_model_weights}} (via "weights").
-If "fitting" is provided with argument \code{pointwise = TRUE}
-(due to memory issues) and \code{family = "beta_binomial2"}, the
-\code{\link{bnec}} will fail because that is a custom family. If "weights" is
+If "weights" is
 not provided by the user, \code{\link{bnec}} will set the default
 \code{method} argument in \code{\link[loo]{loo_model_weights}} to
 "pseudobma". See ?\code{\link[loo]{loo_model_weights}} for further info.}
@@ -39,7 +37,7 @@ not provided by the user, \code{\link{bnec}} will set the default
 \item{x_range}{A range of predictor values over which to consider extracting
 ECx.}
 
-\item{precision}{The length of the predictor vector used for posterior
+\item{resolution}{The length of the predictor vector used for posterior
 predictions, and over which to extract ECx values. Large values will be
 slower but more precise.}
 

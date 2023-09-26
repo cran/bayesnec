@@ -10,7 +10,7 @@
 #' the \code{formula}.
 #' @param x_range A range of predictor values over which to consider extracting
 #' ECx.
-#' @param precision The length of the predictor vector used for posterior
+#' @param resolution The length of the predictor vector used for posterior
 #' predictions, and over which to extract ECx values. Large values will be
 #' slower but more precise.
 #' @param sig_val Probability value to use as the lower quantile to test
@@ -21,9 +21,7 @@
 #' ("fitting" and/or "weights"), each being a named \code{\link[base]{list}}
 #' containing the desired arguments to be passed on to \code{\link[brms]{loo}}
 #' (via "fitting") or to \code{\link[loo]{loo_model_weights}} (via "weights").
-#' If "fitting" is provided with argument \code{pointwise = TRUE}
-#' (due to memory issues) and \code{family = "beta_binomial2"}, the
-#' \code{\link{bnec}} will fail because that is a custom family. If "weights" is
+#' If "weights" is
 #' not provided by the user, \code{\link{bnec}} will set the default
 #' \code{method} argument in \code{\link[loo]{loo_model_weights}} to
 #' "pseudobma". See ?\code{\link[loo]{loo_model_weights}} for further info.
@@ -38,7 +36,7 @@
 #' to fit. See Details for more information.
 #' @param trials_var Removed in version 2.0. Use formula instead. Used to be a
 #' \code{\link[base]{character}} indicating the column
-#' heading for the number of "trials" for binomial or beta_binomial2 response
+#' heading for the number of "trials" for binomial or "beta_binomial" response
 #' data, as it appears in "data" (if data is supplied).
 #' @param random Removed in version 2.0. Use formula instead. Used to be a
 #' named \code{\link[base]{list}} containing the random model
@@ -105,27 +103,28 @@
 #' use the function \code{\link{models}} or to check the parameters of a
 #' specific model use the function \code{\link{show_params}}.
 #' 
-#' All models provide an estimate for NEC. For model types with "nec" as a
-#' prefix, NEC is directly estimated as parameter "nec"
-#' in the model. Models with "ecx" as a prefix are continuous curve models,
-#' typically used for extracting ECx values 
-#' from concentration response data. In this instance the NEC value is defined
-#' as the concentration at which there is a user supplied
-#' (see argument \code{sig_val}) percentage certainty
-#' (based on the Bayesian posterior estimate) that the response
-#' falls below the estimated value of the upper asymptote (top) of the
-#' response (i.e. the response value is significantly
-#' lower than that expected in the case of no exposure).
-#' The default value for \code{sig_val} is 0.01, which corresponds to an alpha
-#' value of 0.01 for a one-sided test of significance.
+#' \bold{No-effect toxicity estimates}
+#' 
+#' Regardless of the model(s) fitted, the resulting object will contain a 
+#' no-effect toxicity estimate. Where the fitted model(s) are NEC models (threshold 
+#' models, containing a step function - all models with "nec" as a
+#' prefix) the no-effect estimate is a true  
+#' no-effect-concentration (NEC, see Fox 2010). Where the fitted model(s) are 
+#' smooth ECx models with no step function (all models with "ecx" as a
+#' prefix), the no-effect estimate is a no-significant-effect-concentration 
+#' (NSEC, see Fisher and Fox 2023). 
+#' In the case of a \code{\link{bayesmanecfit}} that contains a mixture of both 
+#' NEC and ECx models, the no-effect estimate is a model averaged combination of 
+#' the NEC and NSEC estimates, and is reported as the N(S)EC 
+#' (see Fisher et al. 2023).
 #'
 #' \bold{Further argument to \code{\link[brms]{brm}}}
 #'
 #' If not supplied via the \code{\link[brms]{brm}} argument \code{family}, the
 #' appropriate distribution will be guessed based on the characteristics of the
 #' input data. Guesses include: "bernoulli" / bernoulli / bernoulli(), "Beta" /
-#' Beta / Beta(), "binomial" / binomial / binomial(), "beta_binomial2" /
-#' beta_binomial2, "Gamma" / Gamma / Gamma(), "gaussian" / gaussian /
+#' Beta / Beta(), "binomial" / binomial / binomial(), "beta_binomial" /
+#' "beta_binomial", "Gamma" / Gamma / Gamma(), "gaussian" / gaussian /
 #' gaussian(), "negbinomial" / negbinomial / negbinomial(), or "poisson" /
 #' poisson / poisson(). Note, however, that "negbinomial" and "betabinomimal2"
 #' require knowledge on whether the data is over-dispersed. As
@@ -176,6 +175,19 @@
 #'   \code{\link{check_formula}},
 #'   \code{\link{models}},
 #'   \code{\link{show_params}}
+#'   
+#' @references
+#' Fisher R, Fox DR (2023). Introducing the no significant effect concentration 
+#' (NSEC).Environmental Toxicology and Chemistry, 42(9), 2019–2028. 
+#' doi: 10.1002/etc.5610.
+#'
+#' Fisher R, Fox DR, Negri AP, van Dam J, Flores F, Koppel D (2023). Methods for
+#' estimating no-effect toxicity concentrations in ecotoxicology. Integrated 
+#' Environmental Assessment and Management. doi:10.1002/ieam.4809.
+#' 
+#' Fox DR (2010). A Bayesian Approach for Determining the No Effect
+#' Concentration and Hazardous Concentration in Ecotoxicology. Ecotoxicology
+#' and Environmental Safety, 73(2), 123–131. doi: 10.1016/j.ecoenv.2009.09.012.
 #'
 #' @examples
 #' \dontrun{
@@ -193,10 +205,10 @@
 #' @importFrom chk chk_number
 #'
 #' @export
-bnec <- function(formula, data, x_range = NA, precision = 1000, sig_val = 0.01,
+bnec <- function(formula, data, x_range = NA, resolution = 1000, sig_val = 0.01,
                  loo_controls, x_var = NULL, y_var = NULL, trials_var = NULL,
                  model = NULL, random = NULL, random_vars = NULL, ...) {
-  chk_number(precision)
+  chk_number(resolution)
   chk_number(sig_val)
 
   mf <- match.call(expand.dots = FALSE)
@@ -234,13 +246,13 @@ bnec <- function(formula, data, x_range = NA, precision = 1000, sig_val = 0.01,
     }
     formulas <- lapply(mod_fits, extract_formula)
     mod_fits <- expand_manec(mod_fits, formula = formulas, x_range = x_range,
-                             precision = precision, sig_val = sig_val,
+                             resolution = resolution, sig_val = sig_val,
                              loo_controls = loo_controls)
     if (length(mod_fits) > 1) {
       allot_class(mod_fits, c("bayesmanecfit", "bnecfit"))
     } else {
       mod_fits <- expand_nec(mod_fits[[1]], formula = formula,
-                             x_range = x_range, precision = precision,
+                             x_range = x_range, resolution = resolution,
                              sig_val = sig_val, loo_controls = loo_controls,
                              model = names(mod_fits))
       allot_class(mod_fits, c("bayesnecfit", "bnecfit"))
@@ -249,7 +261,7 @@ bnec <- function(formula, data, x_range = NA, precision = 1000, sig_val = 0.01,
     mod_fit <- fit_bayesnec(formula = formula, data = data, model = model,
                             brm_args = brm_args)
     mod_fit <- expand_nec(mod_fit, formula = formula, x_range = x_range,
-                          precision = precision, sig_val = sig_val,
+                          resolution = resolution, sig_val = sig_val,
                           loo_controls = loo_controls, model = model)
     allot_class(mod_fit, c("bayesnecfit", "bnecfit"))
   }

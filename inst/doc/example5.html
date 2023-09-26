@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Running bayesnec</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Running <code>bayesnec</code></h1>
+
+
+
+<p>The <code>bayesnec</code> package makes use of the R package
+<code>brms</code> <span class="citation">(Paul Christian Bürkner 2017;
+Paul-Christian Bürkner 2018)</span> (<a href="https://cran.r-project.org/package=brms" class="uri">https://cran.r-project.org/package=brms</a>) which relies on
+<code>stan</code> (<a href="https://mc-stan.org/" class="uri">https://mc-stan.org/</a>). You will need to have either
+<code>RStan</code> (<a href="https://mc-stan.org/users/interfaces/rstan.html" class="uri">https://mc-stan.org/users/interfaces/rstan.html</a>) or
+<code>cmdstanr</code>(<a href="https://mc-stan.org/cmdstanr/" class="uri">https://mc-stan.org/cmdstanr/</a>) installed and configured
+on your computer to run <code>bayesnec</code>.</p>
+<p>Quick start guides can be found for both <code>RStan</code> <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started" class="uri">https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started</a>
+and <code>cmdstanr</code> <a href="https://mc-stan.org/cmdstanr/articles/cmdstanr.html" class="uri">https://mc-stan.org/cmdstanr/articles/cmdstanr.html</a>.
+However, in our experience getting either package to work can be a bit
+fiddly, particularly on Windows machines.</p>
+<p>We have prepared an installation workflow for <code>cmdstanr</code>
+specifically for Windows 10 that may resolve issues if the above Quick
+start links fail to result in a working version of <code>brms</code>.
+Note that this workflow has also been known to resolve some issues with
+<code>RStan</code>, although it was not developed with that
+intention.</p>
+<div id="cmdstanr-installation-workflow" class="section level1">
+<h1><code>cmdstanr</code> installation workflow</h1>
+<p>These instructions are derived from the instructions at <a href="https://mc-stan.org/docs/2_24/cmdstan-guide/cmdstan-installation.html" class="uri">https://mc-stan.org/docs/2_24/cmdstan-guide/cmdstan-installation.html</a></p>
+<p>The high level steps are:</p>
+<ol style="list-style-type: decimal">
+<li>Install <code>Rtools</code>, this is what <code>cmdstan</code> will
+use to make the executables</li>
+<li>Install <code>git</code>, this is will be used to get the
+<code>cmdstan</code> code</li>
+<li>Install <code>cmdstan</code></li>
+<li>Test <code>cmdstan</code> and run a model</li>
+</ol>
+<p>These instructions assume you have R and Rstudio installed
+already.</p>
+<div id="install-rtools" class="section level2">
+<h2>1. Install <code>Rtools</code></h2>
+<ol style="list-style-type: lower-alpha">
+<li><p>Install <code>Rtools</code> from <a href="https://cran.r-project.org/bin/windows/Rtools/" class="uri">https://cran.r-project.org/bin/windows/Rtools/</a></p></li>
+<li><p>Go to the install location and check that the following usr\bin
+and mingw64\bin directories exist:</p>
+<ul>
+<li>C:\usr\bin</li>
+<li>C:\mingw64\bin</li>
+</ul></li>
+</ol>
+<p>Check that a <strong>mingw32-make.exe</strong> file is in one of
+those directories.</p>
+<p><code>RTools</code> may not always install
+<strong>mingw32-make.exe</strong> but it can be installed manually if
+needed by the following instructions:</p>
+<p>Open <code>RTools Bash</code>, which comes with <code>RTools</code>
+(hit Windows Key, type rtools bash, and hit enter). In the
+<code>RTools Bash</code> console window, type:</p>
+<p><code>pacman -Sy mingw-w64-x86_64-make</code></p>
+<p>Check that the <code>mingw32-make.exe</code> file is in one of the
+<code>RTools</code> folders listed in 1b.</p>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Add the directories to to the Windows Path using the “Edit the
+system environment variables” tool in Windows’ Control Panel. A step by
+step guide on adding directories to the windows path can be found at <a href="https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/" class="uri">https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/</a>.
+Note that you will need administrator privileges on your computer to
+edit the environment variables.</li>
+</ol>
+<ul>
+<li>Put the path in the system paths section (bottom section)</li>
+<li>Note that you can also add the path
+<code>C:\cmdstan\stan\lib\stan_math\lib\tbb</code> to save having to do
+it later (in the later install <code>cmdstan</code> step below)</li>
+</ul>
+<ol start="4" style="list-style-type: lower-alpha">
+<li><p>Test the paths are set correctly</p>
+<ul>
+<li>Reboot your computer</li>
+<li>Start up R studio</li>
+<li>Navigate to the terminal (a tab co-located in the R console
+panel)</li>
+<li>Type <code>echo %PATH%</code></li>
+<li>The paths you added should be in the output from that command. They
+should look something like:
+<ul>
+<li><code>\c\RTools\RTools40\usr\bin</code></li>
+</ul></li>
+</ul></li>
+<li><p>Final check to see if it installed properly.</p></li>
+</ol>
+<p>In the terminal type:</p>
+<p><code>g++ --version</code></p>
+<p>and</p>
+<p><code>mingw32-make --version</code></p>
+<p>Check that it both return a version number. If they produce an error
+there is a problem with the installation.</p>
+</div>
+<div id="install-git" class="section level2">
+<h2>2. Install <code>git</code></h2>
+<ol style="list-style-type: lower-alpha">
+<li><p>If git is not already on your system, install it here: <a href="https://git-scm.com/download/win" class="uri">https://git-scm.com/download/win</a></p></li>
+<li><p>To check that git is installed. In RStudio:</p>
+<ul>
+<li>Navigate to the terminal</li>
+<li>type <code>git --version</code></li>
+<li>Check that it returns a version number. If it produces an error
+there is a problem with the installation</li>
+</ul></li>
+</ol>
+</div>
+<div id="intall-cmdstan" class="section level2">
+<h2>3. Intall <code>cmdstan</code></h2>
+<p>In R studio</p>
+<p>a. Navigate to the terminal</p>
+<p>b. change directory to c:\ drive using the code:
+<code>cd \c</code></p>
+<p>c. download latest version of cmdstan from githup - this may take a
+few minutes:
+<code>git clone https://github.com/stan-dev/cmdstan.git --recursive</code></p>
+<p>d. change directory to where <code>cmdstan</code> is downloaded:
+<code>cd cmdstan</code></p>
+<p>e. clean up the space (just to be sure):
+<code>mingw32-make clean-all</code></p>
+<p>f. compile the code: <code>mingw32-make build</code></p>
+<p>This will take a few minutes and should end with similar phrase as
+“““— CmdStan v2.23.0 built —”“”</p>
+<p>g. Add <code>cmdstan</code> library to system environment path by
+adding <code>C:\cmdstan\stan\lib\stan_math\lib\tbb</code> to the path
+(using the same instructions as 1.c.)</p>
+<p>h. Reboot your computer</p>
+<p>i. <code>cmdstan</code> is missing a file that must be manually added
+to the <code>C:\cmdstan\make</code> folder. Open notepad and copy paste
+the following two lines of text:</p>
+<p><code>CXXFLAGS += -Wno-nonnull</code></p>
+<p><code>TBB_CXXFLAGS= -U__MSVCRT_VERSION__ -D__MSVCRT_VERSION__=0x0E00</code></p>
+<ol start="11" style="list-style-type: lower-alpha">
+<li>Save the file with the name <code>local</code> and ensure that it
+has no file extension. For example, if you used notepad the default file
+extension is .txt which can be deleted by right clicking the file and
+selecting rename. If you can’t see the file extensions, click the view
+tab in your folder ribbon and make sure the
+<code>file name extension</code> box is checked. Instructions for how to
+remove a file extension can be found at: <a href="https://www.computerhope.com/issues/ch002089.htm" class="uri">https://www.computerhope.com/issues/ch002089.htm</a></li>
+</ol>
+</div>
+<div id="test-cmdstan-in-r-studio" class="section level2">
+<h2>4. Test cmdstan in R studio</h2>
+<ol style="list-style-type: lower-alpha">
+<li>Install the R package <code>cmdstanr</code> following the
+instructions at: <a href="https://mc-stan.org/cmdstanr/articles/cmdstanr.html" class="uri">https://mc-stan.org/cmdstanr/articles/cmdstanr.html</a></li>
+</ol>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># we recommend running this is a fresh R session or restarting your current session</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;cmdstanr&quot;</span>, <span class="at">repos =</span> <span class="fu">c</span>(<span class="st">&quot;https://mc-stan.org/r-packages/&quot;</span>, <span class="fu">getOption</span>(<span class="st">&quot;repos&quot;</span>)))</span></code></pre></div>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Make sure all these packages are installed and loaded.</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cmdstanr)</span></code></pre></div>
+<pre><code>## This is cmdstanr version 0.5.3</code></pre>
+<pre><code>## - CmdStanR documentation and vignettes: mc-stan.org/cmdstanr</code></pre>
+<pre><code>## - CmdStan path: /Users/dbarneche/.cmdstan/cmdstan-2.33.1</code></pre>
+<pre><code>## - CmdStan version: 2.33.1</code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(posterior)</span></code></pre></div>
+<pre><code>## This is posterior version 1.4.1</code></pre>
+<pre><code>## 
+## Attaching package: &#39;posterior&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     mad, sd, var</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     %in%, match</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bayesplot)</span></code></pre></div>
+<pre><code>## This is bayesplot version 1.10.0</code></pre>
+<pre><code>## - Online documentation and vignettes at mc-stan.org/bayesplot</code></pre>
+<pre><code>## - bayesplot theme set to bayesplot::theme_default()</code></pre>
+<pre><code>##    * Does _not_ affect other ggplot2 plots</code></pre>
+<pre><code>##    * See ?bayesplot_theme_set for details on theme setting</code></pre>
+<pre><code>## 
+## Attaching package: &#39;bayesplot&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:posterior&#39;:
+## 
+##     rhat</code></pre>
+<pre><code>## The following object is masked from &#39;package:brms&#39;:
+## 
+##     rhat</code></pre>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">color_scheme_set</span>(<span class="st">&quot;brightblue&quot;</span>)</span></code></pre></div>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Manually set the following options.</li>
+</ol>
+<p>Make sure the path points to the <code>cmdstan</code>
+installation</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cmdstan_path</span>()</span></code></pre></div>
+<pre><code>## [1] &quot;/Users/dbarneche/.cmdstan/cmdstan-2.33.1&quot;</code></pre>
+<p>If not, manually set it</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set_cmdstan_path</span>(<span class="st">&quot;C:/cmdstan&quot;</span>)</span></code></pre></div>
+<pre><code>## Warning: Path not set. Can&#39;t find directory: C:/cmdstan</code></pre>
+<p>To use <code>cmdstan</code> as a backend for <code>brms</code> call
+the relevant options.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">brms.backend =</span> <span class="st">&quot;cmdstanr&quot;</span>)</span></code></pre></div>
+<p>Setting the path and backend may be required each time you use
+<code>cmdstan</code></p>
+<ol start="4" style="list-style-type: lower-alpha">
+<li>Check that your toolchain is set up properly.</li>
+</ol>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">check_cmdstan_toolchain</span>()</span></code></pre></div>
+<pre><code>## The C++ toolchain required for CmdStan is setup properly!</code></pre>
+<p>This should return the message
+<code>The C++ toolchain required for CmdStan is setup properly!</code></p>
+<div id="compile-a-model" class="section level3">
+<h3>Compile a model</h3>
+<p>If <code>cmdstan</code> is installed, the following example model
+should work.</p>
+<p>Set up data:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">cmdstan_path</span>(), <span class="st">&quot;examples&quot;</span>, <span class="st">&quot;bernoulli&quot;</span>, <span class="st">&quot;bernoulli.stan&quot;</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">cmdstan_model</span>(file)</span></code></pre></div>
+<pre><code>## Model executable is up to date!</code></pre>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>mod<span class="sc">$</span><span class="fu">print</span>()</span></code></pre></div>
+<pre><code>## data {
+##   int&lt;lower=0&gt; N;
+##   array[N] int&lt;lower=0,upper=1&gt; y;
+## }
+## parameters {
+##   real&lt;lower=0,upper=1&gt; theta;
+## }
+## model {
+##   theta ~ beta(1,1);  // uniform prior on interval 0,1
+##   y ~ bernoulli(theta);
+## }</code></pre>
+<p>Run a Monte Carlo Markov Chain:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># names correspond to the data block in the Stan program</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>data_list <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">N =</span> <span class="dv">10</span>, <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>))</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> mod<span class="sc">$</span><span class="fu">sample</span>(</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_list,</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">123</span>,</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">parallel_chains =</span> <span class="dv">4</span>,</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">refresh =</span> <span class="dv">500</span></span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<pre><code>## Running MCMC with 4 parallel chains...
+## 
+## Chain 1 Iteration:    1 / 2000 [  0%]  (Warmup) 
+## Chain 1 Iteration:  500 / 2000 [ 25%]  (Warmup) 
+## Chain 1 Iteration: 1000 / 2000 [ 50%]  (Warmup) 
+## Chain 1 Iteration: 1001 / 2000 [ 50%]  (Sampling) 
+## Chain 1 Iteration: 1500 / 2000 [ 75%]  (Sampling) 
+## Chain 1 Iteration: 2000 / 2000 [100%]  (Sampling) 
+## Chain 2 Iteration:    1 / 2000 [  0%]  (Warmup) 
+## Chain 2 Iteration:  500 / 2000 [ 25%]  (Warmup) 
+## Chain 2 Iteration: 1000 / 2000 [ 50%]  (Warmup) 
+## Chain 2 Iteration: 1001 / 2000 [ 50%]  (Sampling) 
+## Chain 2 Iteration: 1500 / 2000 [ 75%]  (Sampling) 
+## Chain 2 Iteration: 2000 / 2000 [100%]  (Sampling) 
+## Chain 3 Iteration:    1 / 2000 [  0%]  (Warmup) 
+## Chain 3 Iteration:  500 / 2000 [ 25%]  (Warmup) 
+## Chain 3 Iteration: 1000 / 2000 [ 50%]  (Warmup) 
+## Chain 3 Iteration: 1001 / 2000 [ 50%]  (Sampling) 
+## Chain 3 Iteration: 1500 / 2000 [ 75%]  (Sampling) 
+## Chain 3 Iteration: 2000 / 2000 [100%]  (Sampling) 
+## Chain 4 Iteration:    1 / 2000 [  0%]  (Warmup) 
+## Chain 4 Iteration:  500 / 2000 [ 25%]  (Warmup) 
+## Chain 4 Iteration: 1000 / 2000 [ 50%]  (Warmup) 
+## Chain 4 Iteration: 1001 / 2000 [ 50%]  (Sampling) 
+## Chain 4 Iteration: 1500 / 2000 [ 75%]  (Sampling) 
+## Chain 4 Iteration: 2000 / 2000 [100%]  (Sampling) 
+## Chain 1 finished in 0.0 seconds.
+## Chain 2 finished in 0.0 seconds.
+## Chain 3 finished in 0.0 seconds.
+## Chain 4 finished in 0.0 seconds.
+## 
+## All 4 chains finished successfully.
+## Mean chain execution time: 0.0 seconds.
+## Total execution time: 0.2 seconds.</code></pre>
+<p>Check that the model has successfully fitted by examining the model
+parameters</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>fit<span class="sc">$</span><span class="fu">summary</span>()</span></code></pre></div>
+<pre><code>## # A tibble: 2 × 10
+##   variable   mean median    sd   mad      q5    q95  rhat ess_bulk ess_tail
+##   &lt;chr&gt;     &lt;num&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;  &lt;num&gt; &lt;num&gt;    &lt;num&gt;    &lt;num&gt;
+## 1 lp__     -7.26  -6.99  0.695 0.331 -8.70   -6.75   1.00    1661.    1619.
+## 2 theta     0.249  0.233 0.119 0.122  0.0816  0.468  1.00    1494.    1630.</code></pre>
+</div>
+<div id="run-a-model-using-brms" class="section level3">
+<h3>Run a model using brms</h3>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(cmdstanr)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set_cmdstan_path</span>(<span class="st">&quot;C:/cmdstan&quot;</span>)</span></code></pre></div>
+<pre><code>## Warning: Path not set. Can&#39;t find directory: C:/cmdstan</code></pre>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">brms.backend =</span> <span class="st">&quot;cmdstanr&quot;</span>)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(brms)</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">brm</span>(count <span class="sc">~</span> zAge <span class="sc">+</span> zBase <span class="sc">*</span> Trt <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>patient),</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">data =</span> epilepsy, <span class="at">family =</span> <span class="fu">poisson</span>(), <span class="at">silent =</span> <span class="dv">2</span>, <span class="at">refresh =</span> <span class="dv">0</span>)</span></code></pre></div>
+<pre><code>## Compiling Stan program...</code></pre>
+<pre><code>## 
+-
+
+\
+
+|
+
+/
+
+-
+
+\
+
+|
+
+/
+
+-
+
+\
+
+|
+
+/
+
+-
+
+\</code></pre>
+<pre><code>## In file included from /var/folders/80/x2f5bfts2_n9g_2h7w8rx3jm0000gn/T/RtmpCaq6aL/model-f81a115042e.hpp:1:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/src/stan/model/model_header.hpp:4:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/stan/math.hpp:19:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/stan/math/rev.hpp:10:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/stan/math/rev/fun.hpp:200:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/stan/math/prim/functor.hpp:16:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/stan/math/prim/functor/integrate_ode_rk45.hpp:6:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/stan/math/prim/functor/ode_rk45.hpp:9:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/numeric/odeint.hpp:76:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/numeric/odeint/integrate/observer_collection.hpp:23:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/function.hpp:30:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/function/detail/prologue.hpp:17:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/function/function_base.hpp:21:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/type_index.hpp:29:
+## In file included from /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/type_index/stl_type_index.hpp:47:
+## /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/container_hash/hash.hpp:132:33: warning: &#39;unary_function&lt;const std::error_category *</code></pre>
+<pre><code>## 
+|</code></pre>
+<pre><code>## , unsigned long&gt;&#39; is deprecated [-Wdeprecated-declarations]
+##         struct hash_base : std::unary_function&lt;T, std::size_t&gt; {};
+##                                 ^
+## /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/container_hash/hash.hpp:692:18: note: in instantiation of template class &#39;boost::hash_detail::hash_base&lt;const std::error_category *&gt;&#39; requested here
+##         : public boost::hash_detail::hash_base&lt;T*&gt;
+##                  ^
+## /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/container_hash/hash.hpp:420:24: note: in instantiation of template class &#39;boost::hash&lt;const std::error_category *&gt;&#39; requested here
+##         boost::hash&lt;T&gt; hasher;
+##                        ^
+## /Users/dbarneche/.cmdstan/cmdstan-2.33.1/stan/lib/stan_math/lib/boost_1.78.0/boost/container_hash/hash.hpp:551:9: note: in instantiation of function template specialization &#39;boost::hash_combine&lt;const std::error_category *&gt;&#39; requested here
+##         hash_combine(seed, &amp;v.category());
+##         ^
+## /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__functional/unary_function.h:23:29: note: &#39;unary_function&lt;const std::error_category *, unsigned long&gt;&#39; has been explicitly marked deprecated here</code></pre>
+<pre><code>## 
+/</code></pre>
+<pre><code>## struct _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX11 unary_function
+##                             ^
+## /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__config:825:41: note: expanded from macro &#39;_LIBCPP_DEPRECATED_IN_CXX11&#39;
+## #    define _LIBCPP_DEPRECATED_IN_CXX11 _LIBCPP_DEPRECATED
+##                                         ^
+## /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__config:810:49: note: expanded from macro &#39;_LIBCPP_DEPRECATED&#39;
+## #      define _LIBCPP_DEPRECATED __attribute__((deprecated))
+##                                                 ^</code></pre>
+<pre><code>## 
+-
+
+\
+
+|
+
+/
+
+-
+
+\
+
+|
+
+/
+
+-
+
+\
+
+|
+
+/
+
+-
+
+\
+
+|
+
+/
+
+-
+
+\
+
+|
+
+/
+
+-
+
+\
+
+|</code></pre>
+<pre><code>## 1 warning generated.</code></pre>
+<pre><code>## 
+/
+
+-
+
+\
+
+|
+
+/
+
+ 
+Running MCMC with 4 chains, at most 10 in parallel...
+## 
+## Chain 1 finished in 1.8 seconds.
+## Chain 2 finished in 1.8 seconds.
+## Chain 3 finished in 1.8 seconds.
+## Chain 4 finished in 1.8 seconds.
+## 
+## All 4 chains finished successfully.
+## Mean chain execution time: 1.8 seconds.
+## Total execution time: 1.9 seconds.</code></pre>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit)</span></code></pre></div>
+<pre><code>##  Family: poisson 
+##   Links: mu = log 
+## Formula: count ~ zAge + zBase * Trt + (1 | patient) 
+##    Data: epilepsy (Number of observations: 236) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Group-Level Effects: 
+## ~patient (Number of levels: 59) 
+##               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sd(Intercept)     0.59      0.07     0.46     0.74 1.00      930     1457
+## 
+## Population-Level Effects: 
+##            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept      1.77      0.12     1.54     2.02 1.01      747     1148
+## zAge           0.09      0.09    -0.08     0.26 1.00      771     1304
+## zBase          0.70      0.12     0.46     0.93 1.00      835     1426
+## Trt1          -0.26      0.17    -0.60     0.08 1.01      690      926
+## zBase:Trt1     0.05      0.17    -0.26     0.38 1.01      981     1720
+## 
+## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+</div>
+</div>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Burkner2017" class="csl-entry">
+Bürkner, Paul Christian. 2017. <span>“<span class="nocase">brms: An R
+package for Bayesian multilevel models using Stan</span>.”</span>
+<em>Journal of Statistical Software</em> 80 (1): 1–28. <a href="https://doi.org/10.18637/jss.v080.i01">https://doi.org/10.18637/jss.v080.i01</a>.
+</div>
+<div id="ref-Burkner2018" class="csl-entry">
+Bürkner, Paul-Christian. 2018. <span>“Advanced <span>Bayesian</span>
+Multilevel Modeling with the <span>R</span> Package <span class="nocase">brms</span>.”</span> <em>The R Journal</em> 10 (1):
+395–411. <a href="https://doi.org/10.32614/RJ-2018-017">https://doi.org/10.32614/RJ-2018-017</a>.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
