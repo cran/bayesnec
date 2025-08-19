@@ -1,4 +1,4 @@
-cd8a834e628ac48d055c211dab0b2829 *DESCRIPTION
+28668761f65bc0b1062b82b97b76ff8d *DESCRIPTION
 1aa61a485ce2e9fec073b1d8fc305cb1 *NAMESPACE
 1cb7cc51c56e0484f45b707310416783 *NEWS.md
 8e68d192f933f461189b42bc6501c76b *R/add_criteria.R
@@ -6,7 +6,7 @@ cd8a834e628ac48d055c211dab0b2829 *DESCRIPTION
 954438f817def27b96860b5f6d0b65a1 *R/autoplot.R
 c784a24f9594256f0cf91b0c01274dad *R/average_estimates.R
 d068c6f2a0726815b89dca56bdd03adc *R/bayesmanecfit-class.R
-3948979c3ff6d16b033ab5a4f5625f5e *R/bayesnec-package.R
+fe177ffd35a70cd88063706b8d1ca79c *R/bayesnec-package.R
 fcf3bf67596c31593fb131da690309b9 *R/bayesnecfit-class.R
 e7919c6c709f504ddad1a47f80b4e1d7 *R/bayesnecformula.R
 07207d75d7ff99eb599833a492fe19b0 *R/bnec.R
@@ -58,7 +58,7 @@ b735e9690eb59b2a72167dc0d1ce8711 *R/show_params.R
 b1f443e7c6c57d2e4407e445462acd20 *R/validate_loo_controls.R
 a2eed46656b6af9b4d6a2b6730a255b0 *R/validate_priors.R
 92245e0f8c9528798132fe7b4582b3c6 *README.md
-ab7dc6673fd4701652daf1e0a704afa3 *build/vignette.rds
+428e0e56eca7b55aa9954222cb9d917d *build/vignette.rds
 8f033d8c02bdc144a121501bac015cb5 *data/herbicide.rda
 1757403aa63e805ec5d55a82840fca13 *data/manec_example.rda
 075d5c3211e4bddf6f30d7b417588ce9 *data/nec_data.rda
@@ -79,7 +79,7 @@ f8ab97d97dda456e305530736e1e107d *man/amend.Rd
 b8823ad88fae8e646b8144d3dee4b455 *man/autoplot.Rd
 ba92960c2c1b75bcea3da5d8613e5794 *man/average_estimates.Rd
 5bd54f8108d5b8dd804dd71215a98254 *man/bayesmanecfit-class.Rd
-1d440363ca9fcaa04adcf6d48f9963b0 *man/bayesnec-package.Rd
+e6ef5ced0d3c967bcbc9f529cae2ef60 *man/bayesnec-package.Rd
 49818b00d052bb92f8c0232906c47dd3 *man/bayesnecfit-class.Rd
 0402fff04627f05cbab3b4160fb5169d *man/bayesnecformula.Rd
 a67d6902f46c2b85cb1f4a5d5526b5a4 *man/bnec.Rd
@@ -151,7 +151,7 @@ e5b98eac12685f19b01aa580ca823c6d *tests/testthat/test-ecx.R
 a09d5d2e9e5fe8ae2bb7c39836d1c49d *tests/testthat/test-expand_classes.R
 5e947bf118b787985108802b6fe94bbb *tests/testthat/test-helpers.R
 cffea7cc2f5897ce67ce6bc60aa4224d *tests/testthat/test-make_brmsformula.R
-cd74dfc48eb3ab864424d2f10a748080 *tests/testthat/test-model.frame.R
+9e72fa2eb35895d0fd9997eb11f20a85 *tests/testthat/test-model.frame.R
 8ae960a1641047d061da7bf19a445629 *tests/testthat/test-modname.R
 c5bf3e5dbc19737d3fc1b5b8e21eeb95 *tests/testthat/test-nec.R
 974942949d3dccc3d169b1ca247eaa57 *tests/testthat/test-nsec.R
